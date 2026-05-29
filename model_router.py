@@ -1,6 +1,7 @@
-"""模型路由器 — 多模型调度、故障转移"""
+"""模型路由器 — 多模型调度、故障转移、支持流式输出"""
 
 import logging
+from typing import AsyncIterator
 from adapters import (
     BaseModelAdapter, DeepSeekAdapter, OpenRouterAdapter, OpenAICompatibleAdapter
 )
@@ -49,16 +50,8 @@ class ModelRouter:
 
         logger.info(f"已注册 {len(self.adapters)} 个模型适配器: {list(self.adapters.keys())}")
 
-    async def chat(
-        self,
-        messages: list[dict],
-        model: str = "deepseek-chat",
-        tools: list[dict] | None = None,
-        temperature: float = 0.7,
-        max_tokens: int = 4096,
-    ) -> ModelResponse:
-        """路由请求到合适的模型"""
-        # 查找适配器
+    def _get_adapter(self, model: str) -> tuple[str, BaseModelAdapter]:
+        """查找模型对应的适配器"""
         adapter_name = self.model_map.get(model)
         if not adapter_name:
             # 尝试前缀匹配
@@ -75,7 +68,18 @@ class ModelRouter:
             else:
                 raise RuntimeError("没有可用的模型适配器，请配置 API Key")
 
-        adapter = self.adapters[adapter_name]
+        return adapter_name, self.adapters[adapter_name]
+
+    async def chat(
+        self,
+        messages: list[dict],
+        model: str = "deepseek-chat",
+        tools: list[dict] | None = None,
+        temperature: float = 0.7,
+        max_tokens: int = 4096,
+    ) -> ModelResponse:
+        """同步对话"""
+        adapter_name, adapter = self._get_adapter(model)
 
         try:
             return await adapter.chat(
@@ -93,6 +97,40 @@ class ModelRouter:
                             messages=messages, model=model, tools=tools,
                             temperature=temperature, max_tokens=max_tokens,
                         )
+                    except Exception:
+                        continue
+            raise RuntimeError(f"所有模型均不可用: {e}")
+
+    async def chat_stream(
+        self,
+        messages: list[dict],
+        model: str = "deepseek-chat",
+        tools: list[dict] | None = None,
+        temperature: float = 0.7,
+        max_tokens: int = 4096,
+    ) -> AsyncIterator[dict]:
+        """流式对话 — 返回 token 级别的流"""
+        adapter_name, adapter = self._get_adapter(model)
+
+        try:
+            async for chunk in adapter.chat_stream(
+                messages=messages, model=model, tools=tools,
+                temperature=temperature, max_tokens=max_tokens,
+            ):
+                yield chunk
+        except Exception as e:
+            logger.error(f"模型 {model} 流式调用失败: {e}")
+            # 故障转移：尝试其他适配器
+            for name, fallback_adapter in self.adapters.items():
+                if name != adapter_name:
+                    try:
+                        logger.info(f"故障转移到 {name}")
+                        async for chunk in fallback_adapter.chat_stream(
+                            messages=messages, model=model, tools=tools,
+                            temperature=temperature, max_tokens=max_tokens,
+                        ):
+                            yield chunk
+                        return
                     except Exception:
                         continue
             raise RuntimeError(f"所有模型均不可用: {e}")
