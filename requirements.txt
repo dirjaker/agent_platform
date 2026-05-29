@@ -1,0 +1,9 @@
+# Agent 工具调用平台 - Python 依赖
+
+# 核心依赖
+fastapi>=0.100.0
+uvicorn>=0.20.0
+httpx>=0.25.0
+pydantic>=2.0.0
+pyyaml>=6.0
+rich>=13.0.0
