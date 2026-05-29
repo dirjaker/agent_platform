@@ -140,6 +140,27 @@ class ToolRegistry:
 registry = ToolRegistry()
 
 
+# ========== 自动加载 tools/ 目录 ==========
+def _auto_load_tools():
+    """启动时自动加载 tools/ 目录下的工具"""
+    from pathlib import Path
+    tools_dir = Path(__file__).parent / "tools"
+    if tools_dir.exists():
+        import importlib.util
+        for py_file in tools_dir.glob("*.py"):
+            if py_file.name.startswith("_"):
+                continue
+            try:
+                spec = importlib.util.spec_from_file_location(f"tools.{py_file.stem}", py_file)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+            except Exception as e:
+                logger.warning(f"加载工具 {py_file.name} 失败: {e}")
+
+
+_auto_load_tools()
+
+
 # ========== 内置工具 ==========
 
 @registry.register(

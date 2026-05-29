@@ -8,13 +8,17 @@ from pathlib import Path
 
 # 确保在项目目录
 sys.path.insert(0, str(Path(__file__).parent))
-
+sys.path.insert(0, str(Path(__file__).parent))
 from config import load_config
 from models import Conversation
 from database import AgentDatabase
 from tool_registry import registry
 from model_router import ModelRouter
 from agent import AgentOrchestrator
+from tool_loader import load_tools_from_directory
+
+# 加载扩展工具
+load_tools_from_directory()
 
 
 async def chat_interactive(config: dict):
