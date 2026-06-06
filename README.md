@@ -1,3 +1,20 @@
+<div align="center">
+
+# 🤖 Agent Platform
+
+### Python AI Agent 开发平台
+
+[![模块](https://img.shields.io/badge/模块-7-blue?style=flat-square)]()
+[![工具](https://img.shields.io/badge/工具-10+-green?style=flat-square)]()
+[![框架](https://img.shields.io/badge/框架-FastAPI-orange?style=flat-square)]()
+[![更新](https://img.shields.io/badge/更新-2025.06-red?style=flat-square)]()
+
+*模块化 AI Agent 平台 · 工具注册 · 技能系统 · 多模型支持*
+
+</div>
+
+---
+
 # Agent 工具调用平台 v2.0
 
 一个支持自定义工具注册、多模型调度、多轮对话的智能 Agent 平台。
@@ -99,3 +116,4 @@ Agent 核心层
 ## 📄 License
 
 MIT
+
