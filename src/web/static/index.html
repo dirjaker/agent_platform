@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 平台管理面板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#c9d1d9;--text2:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:600;color:var(--accent)}
+
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-header{padding:14px;border-bottom:1px solid var(--border)}
+.conv-list{flex:1;overflow-y:auto;padding:8px}
+.conv-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background 0.15s}
+.conv-item:hover{background:var(--border)}
+.conv-item.active{background:var(--accent);color:#fff}
+.sidebar-footer{padding:10px 14px;border-top:1px solid var(--border);font-size:11px;color:var(--text2)}
+
+.main-area{flex:1;display:flex;flex-direction:column}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{padding:10px 20px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all 0.15s}
+.tab.active{color:var(--accent);border-color:var(--accent)}
+.tab-content{display:none;flex:1;overflow-y:auto;padding:20px}
+.tab-content.active{display:flex;flex-direction:column}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.stat-value{font-size:22px;font-weight:700;color:var(--accent)}
+.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
+
+/* Tools */
+.tool-list{list-style:none}
+.tool-item{padding:10px 14px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+.tool-name{color:var(--accent);font-weight:500}
+.tool-cat{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--border);color:var(--text2)}
+.tool-desc{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* Chat */
+.chat-area{flex:1;display:flex;flex-direction:column}
+.messages{flex:1;overflow-y:auto;padding:16px}
+.msg{margin-bottom:12px;max-width:700px;animation:fadeIn 0.2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{margin-left:auto}
+.msg.assistant{margin-right:auto}
+.msg-bubble{padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.msg.user .msg-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:2px}
+.msg.assistant .msg-bubble{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:2px}
+.msg-meta{font-size:10px;color:var(--text2);margin-top:4px}
+.msg.user .msg-meta{text-align:right}
+.tool-call-box{background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:6px;padding:8px 12px;margin:6px 0;font-size:12px}
+.tool-call-name{color:var(--yellow);font-weight:600}
+
+.input-area{padding:14px 16px;border-top:1px solid var(--border)}
+.input-row{display:flex;gap:8px}
+#chat-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:none;min-height:40px;max-height:120px;font-family:inherit}
+#chat-input:focus{border-color:var(--accent)}
+
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;transition:all 0.15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{opacity:0.85}
+.btn-sm{padding:4px 10px;font-size:12px}
+
+.empty{text-align:center;padding:32px;color:var(--text2);font-size:13px}
+.footer{text-align:center;padding:10px;color:var(--text2);font-size:11px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Agent 平台管理面板</h1>
+  <span style="font-size:12px;color:var(--text2)">ReAct 循环 / 多工具调度 / 流式输出</span>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="btn btn-primary btn-sm" onclick="newChat()" style="width:100%">新建对话</button>
+    </div>
+    <div class="conv-list" id="conv-list">
+      <div class="empty">加载中...</div>
+    </div>
+    <div class="sidebar-footer" id="stats-footer">-</div>
+  </div>
+
+  <div class="main-area">
+    <div class="tabs">
+      <div class="tab active" data-tab="chat" onclick="switchTab(this)">对话</div>
+      <div class="tab" data-tab="tools" onclick="switchTab(this)">工具</div>
+      <div class="tab" data-tab="stats" onclick="switchTab(this)">统计</div>
+    </div>
+
+    <!-- 对话 -->
+    <div id="tab-chat" class="tab-content active chat-area">
+      <div class="messages" id="messages">
+        <div class="empty">选择或创建一个对话开始</div>
+      </div>
+      <div class="input-area">
+        <div class="input-row">
+          <textarea id="chat-input" placeholder="输入消息... (Enter 发送)" rows="1" onkeydown="handleKey(event)"></textarea>
+          <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工具 -->
+    <div id="tab-tools" class="tab-content">
+      <h3 style="color:var(--accent);margin-bottom:14px">已注册工具</h3>
+      <ul class="tool-list" id="tool-list">
+        <li class="empty">加载中...</li>
+      </ul>
+    </div>
+
+    <!-- 统计 -->
+    <div id="tab-stats" class="tab-content">
+      <h3 style="color:var(--accent);margin-bottom:14px">平台统计</h3>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-item"><div class="stat-value" id="st-convs">-</div><div class="stat-label">对话总数</div></div>
+        <div class="stat-item"><div class="stat-value" id="st-msgs">-</div><div class="stat-label">消息总数</div></div>
+        <div class="stat-item"><div class="stat-value" id="st-tools">-</div><div class="stat-label">已注册工具</div></div>
+        <div class="stat-item"><div class="stat-value" id="st-calls">-</div><div class="stat-label">工具调用次数</div></div>
+      </div>
+      <h3 style="color:var(--accent);margin-bottom:14px">可用模型</h3>
+      <div id="models-list" style="font-size:13px;color:var(--text2)">加载中...</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Agent 工具调用平台 -- 管理面板</div>
+
+<script>
+const API = '';
+let currentConv = null;
+let conversations = [];
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function switchTab(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+el.dataset.tab).classList.add('active');
+}
+
+async function loadConversations(){
+  try{
+    const res=await fetch(API+'/api/conversations');
+    conversations=await res.json();
+    renderConvList();
+  }catch(e){console.error(e)}
+}
+
+function renderConvList(){
+  const el=document.getElementById('conv-list');
+  if(!conversations.length){el.innerHTML='<div class="empty">暂无对话</div>';return}
+  el.innerHTML=conversations.map(c=>
+    `<div class="conv-item ${c.id===currentConv?'active':''}" onclick="selectConv('${c.id}')">${esc(c.title||'新对话')}</div>`
+  ).join('');
+}
+
+async function selectConv(id){
+  currentConv=id;
+  renderConvList();
+  try{
+    const res=await fetch(API+'/api/conversations/'+id);
+    const data=await res.json();
+    renderMessages(data.messages||[]);
+  }catch(e){console.error(e)}
+}
+
+function renderMessages(msgs){
+  const el=document.getElementById('messages');
+  if(!msgs.length){el.innerHTML='<div class="empty">暂无消息</div>';return}
+  el.innerHTML=msgs.map(m=>{
+    if(m.role==='user')return `<div class="msg user"><div class="msg-bubble">${esc(m.content)}</div><div class="msg-meta">用户</div></div>`;
+    if(m.role==='tool'){
+      const info=m.tool_result?(typeof m.tool_result==='string'?JSON.parse(m.tool_result):m.tool_result):{};
+      return `<div class="tool-call-box"><span class="tool-call-name">${esc(info.name||'unknown')}</span> ${info.result?.success?'执行成功':'执行失败'}${info.result?.execution_time?' -- '+info.result.execution_time.toFixed(2)+'s':''}</div>`;
+    }
+    if(m.role==='assistant'&&m.content)return `<div class="msg assistant"><div class="msg-bubble">${esc(m.content)}</div>${m.metadata?.steps?`<div class="msg-meta">步骤: ${m.metadata.steps} | 模型: ${m.metadata.model||''}</div>`:''}</div>`;
+    return '';
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+async function sendMessage(){
+  const input=document.getElementById('chat-input');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+
+  appendMsg('user',msg);
+  appendMsg('assistant','思考中...');
+
+  try{
+    const res=await fetch(API+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,conversation_id:currentConv})});
+    const data=await res.json();
+    currentConv=data.conversation_id;
+    renderMessages(data.messages);
+    loadConversations();
+  }catch(e){
+    appendMsg('assistant','请求失败: '+e.message);
+  }
+}
+
+function appendMsg(role,content){
+  const el=document.getElementById('messages');
+  const empty=el.querySelector('.empty');
+  if(empty)empty.remove();
+  const div=document.createElement('div');
+  div.className='msg '+role;
+  div.innerHTML=`<div class="msg-bubble">${esc(content)}</div>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
+}
+
+function newChat(){
+  currentConv=null;
+  renderConvList();
+  document.getElementById('messages').innerHTML='<div class="empty">输入消息开始新对话</div>';
+}
+
+async function loadTools(){
+  try{
+    const res=await fetch(API+'/api/tools');
+    const data=await res.json();
+    const el=document.getElementById('tool-list');
+    if(!data.length){el.innerHTML='<div class="empty">暂无工具</div>';return}
+    el.innerHTML=data.map(t=>`
+      <li class="tool-item">
+        <div>
+          <div class="tool-name">${esc(t.name)}</div>
+          <div class="tool-desc">${esc(t.description||'')}</div>
+        </div>
+        <span class="tool-cat">${esc(t.category||'general')}</span>
+      </li>
+    `).join('');
+  }catch(e){console.error(e)}
+}
+
+async function loadStats(){
+  try{
+    const res=await fetch(API+'/api/stats');
+    const d=await res.json();
+    document.getElementById('st-convs').textContent=d.total_conversations||0;
+    document.getElementById('st-msgs').textContent=d.total_messages||0;
+    document.getElementById('st-calls').textContent=d.total_tool_calls||0;
+    document.getElementById('stats-footer').textContent=`对话: ${d.total_conversations||0} | 消息: ${d.total_messages||0}`;
+  }catch(e){console.error(e)}
+
+  try{
+    const res=await fetch(API+'/api/tools');
+    const tools=await res.json();
+    document.getElementById('st-tools').textContent=tools.length;
+  }catch(e){}
+}
+
+async function loadModels(){
+  try{
+    const res=await fetch(API+'/api/models');
+    const data=await res.json();
+    const el=document.getElementById('models-list');
+    if(Array.isArray(data)&&data.length){
+      el.innerHTML=data.map(m=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">${esc(typeof m==='string'?m:m.name||JSON.stringify(m))}</div>`).join('');
+    }else{el.textContent='暂无可用模型'}
+  }catch(e){document.getElementById('models-list').textContent='加载失败'}
+}
+
+// 初始化
+loadConversations();loadTools();loadStats();loadModels();
+</script>
+</body>
+</html>

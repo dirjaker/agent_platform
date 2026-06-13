@@ -111,6 +111,47 @@ Agent 核心层
 
 详细技术设计请参考 [技术文档](../project_list/03-AI-Agent工具调用平台-技术文档.md)
 
+## Web 管理面板
+
+提供独立的管理 Dashboard，可通过浏览器管理对话、查看工具列表和平台统计。
+
+```bash
+# 启动管理面板
+python src/web/app.py
+
+# 访问 Dashboard
+# http://localhost:8003
+```
+
+### 管理面板 API
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/stats` | GET | 平台统计 |
+| `/api/conversations` | GET | 列出所有对话 |
+| `/api/conversations/{id}` | GET | 获取对话详情 |
+| `/api/conversations/{id}` | DELETE | 删除对话 |
+| `/api/chat` | POST | 同步对话 |
+| `/api/tools` | GET | 列出所有工具 |
+| `/api/models` | GET | 列出可用模型 |
+| `/api/tool-logs/{id}` | GET | 工具调用日志 |
+
+## macOS 桌面应用
+
+提供基于 tkinter 的本地桌面窗口，可一键启动 Web 服务。
+
+```bash
+python src/macos/app.py
+```
+
+## 打包 macOS .app
+
+```bash
+pip install py2app
+python packaging/py2app_setup.py py2app
+# 产出: dist/Agent平台.app
+```
+
 ## 📄 License
 
 MIT
