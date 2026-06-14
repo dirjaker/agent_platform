@@ -84,10 +84,10 @@
 
   <line x1="480" y1="50" x2="480" y2="350" stroke="white" stroke-width="0.5" opacity="0.12"/>
 
-  <text x="540" y="120" font-family="'SF Pro Display','Helvetica Neue',Arial,sans-serif" font-size="64" font-weight="800" fill="white" letter-spacing="5">AGENT PLATFORM</text>
+  <text x="540" y="120" font-family="'SF Pro Display','Helvetica Neue',Arial,sans-serif" font-size="56" font-weight="800" fill="white" letter-spacing="4">AGENT PLATFORM</text>
   <text x="540" y="185" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="22" font-weight="500" fill="white" opacity="0.9" letter-spacing="3">Agent 工具调用平台</text>
   <text x="540" y="225" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="300" fill="white" opacity="0.5" letter-spacing="1.5">Function Calling · ReAct 循环 · 18 种内置工具 · 工具注册</text>
   <text x="540" y="275" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="12" fill="white" opacity="0.4" letter-spacing="1.5">FastAPI · Python · OpenAI</text>
   <line x1="540" y1="315" x2="1170" y2="315" stroke="white" stroke-width="0.5" opacity="0.1"/>
   <text x="540" y="345" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="10" fill="white" opacity="0.3" letter-spacing="1">AGENT · FUNCTION CALLING · REACT · TOOLS</text>
-</svg>
+</svg>SVGEOF
