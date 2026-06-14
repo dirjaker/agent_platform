@@ -8,3 +8,7 @@ venv/
 .env
 data/*.db
 *.log
+
+# VitePress build output
+docs/.vitepress/dist/
+docs/.vitepress/cache/
