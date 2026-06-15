@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Platform - 智能体平台</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+/* ========== THEME SYSTEM ========== */
+:root {
+  --transition-speed: 0.3s;
+}
+[data-theme="dark"] {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1b26;
+  --bg-tertiary: #24253a;
+  --bg-card: #1e1f33;
+  --bg-hover: #2a2b44;
+  --bg-input: #181926;
+  --bg-nav: #13141f;
+  --bg-overlay: rgba(0,0,0,0.6);
+  --text-primary: #e2e4f0;
+  --text-secondary: #9499b3;
+  --text-muted: #5c6080;
+  --text-inverse: #0f1117;
+  --border-color: #2d2e45;
+  --border-light: #363752;
+  --accent: #6c63ff;
+  --accent-hover: #5a52e0;
+  --accent-light: rgba(108,99,255,0.15);
+  --success: #4caf50;
+  --success-light: rgba(76,175,80,0.15);
+  --warning: #ff9800;
+  --warning-light: rgba(255,152,0,0.15);
+  --danger: #f44336;
+  --danger-light: rgba(244,67,54,0.15);
+  --info: #2196f3;
+  --info-light: rgba(33,150,243,0.15);
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+  --scrollbar-track: #1a1b26;
+  --scrollbar-thumb: #363752;
+  --code-bg: #151623;
+  --user-msg-bg: #2a2b55;
+  --assistant-msg-bg: #1e1f33;
+  --node-start: #4caf50;
+  --node-end: #f44336;
+  --node-llm: #6c63ff;
+  --node-code: #ff9800;
+  --node-ifelse: #e91e63;
+  --node-http: #00bcd4;
+  --node-tool: #9c27b0;
+  --node-knowledge: #8bc34a;
+}
+[data-theme="light"] {
+  --bg-primary: #f5f6fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef0f5;
+  --bg-card: #ffffff;
+  --bg-hover: #f0f1f5;
+  --bg-input: #f8f9fc;
+  --bg-nav: #ffffff;
+  --bg-overlay: rgba(0,0,0,0.3);
+  --text-primary: #1a1b2e;
+  --text-secondary: #6b6d80;
+  --text-muted: #a0a3b5;
+  --text-inverse: #ffffff;
+  --border-color: #e2e4ea;
+  --border-light: #eceef3;
+  --accent: #6c63ff;
+  --accent-hover: #5a52e0;
+  --accent-light: rgba(108,99,255,0.1);
+  --success: #4caf50;
+  --success-light: rgba(76,175,80,0.1);
+  --warning: #ff9800;
+  --warning-light: rgba(255,152,0,0.1);
+  --danger: #f44336;
+  --danger-light: rgba(244,67,54,0.1);
+  --info: #2196f3;
+  --info-light: rgba(33,150,243,0.1);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+  --scrollbar-track: #f0f1f5;
+  --scrollbar-thumb: #ccc;
+  --code-bg: #f4f5f9;
+  --user-msg-bg: #eef0ff;
+  --assistant-msg-bg: #ffffff;
+  --node-start: #4caf50;
+  --node-end: #f44336;
+  --node-llm: #6c63ff;
+  --node-code: #ff9800;
+  --node-ifelse: #e91e63;
+  --node-http: #00bcd4;
+  --node-tool: #9c27b0;
+  --node-knowledge: #8bc34a;
+}
+[data-theme="warm"] {
+  --bg-primary: #1a1410;
+  --bg-secondary: #261e17;
+  --bg-tertiary: #352a20;
+  --bg-card: #2a2118;
+  --bg-hover: #3d3025;
+  --bg-input: #201913;
+  --bg-nav: #15100c;
+  --bg-overlay: rgba(0,0,0,0.6);
+  --text-primary: #f0e6d8;
+  --text-secondary: #b09a82;
+  --text-muted: #7a6855;
+  --text-inverse: #1a1410;
+  --border-color: #3d3025;
+  --border-light: #4a3a2d;
+  --accent: #e8a44a;
+  --accent-hover: #d4933e;
+  --accent-light: rgba(232,164,74,0.15);
+  --success: #7cb342;
+  --success-light: rgba(124,179,66,0.15);
+  --warning: #ffa726;
+  --warning-light: rgba(255,167,38,0.15);
+  --danger: #e57373;
+  --danger-light: rgba(229,115,115,0.15);
+  --info: #4fc3f7;
+  --info-light: rgba(79,195,247,0.15);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --scrollbar-track: #261e17;
+  --scrollbar-thumb: #4a3a2d;
+  --code-bg: #1a1410;
+  --user-msg-bg: #3d3025;
+  --assistant-msg-bg: #2a2118;
+  --node-start: #7cb342;
+  --node-end: #e57373;
+  --node-llm: #e8a44a;
+  --node-code: #ffa726;
+  --node-ifelse: #f06292;
+  --node-http: #4fc3f7;
+  --node-tool: #ce93d8;
+  --node-knowledge: #aed581;
+}
+[data-theme="mint"] {
+  --bg-primary: #0e1a17;
+  --bg-secondary: #162522;
+  --bg-tertiary: #1e3530;
+  --bg-card: #1a2e29;
+  --bg-hover: #253d37;
+  --bg-input: #121f1c;
+  --bg-nav: #0b1412;
+  --bg-overlay: rgba(0,0,0,0.6);
+  --text-primary: #e0f0ec;
+  --text-secondary: #8ab5aa;
+  --text-muted: #5a8579;
+  --text-inverse: #0e1a17;
+  --border-color: #253d37;
+  --border-light: #2e4d45;
+  --accent: #4db6ac;
+  --accent-hover: #43a59b;
+  --accent-light: rgba(77,182,172,0.15);
+  --success: #66bb6a;
+  --success-light: rgba(102,187,106,0.15);
+  --warning: #ffb74d;
+  --warning-light: rgba(255,183,77,0.15);
+  --danger: #ef5350;
+  --danger-light: rgba(239,83,80,0.15);
+  --info: #4dd0e1;
+  --info-light: rgba(77,208,225,0.15);
+  --shadow: 0 4px 24px rgba(0,0,0,0.35);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+  --scrollbar-track: #162522;
+  --scrollbar-thumb: #2e4d45;
+  --code-bg: #0e1a17;
+  --user-msg-bg: #253d37;
+  --assistant-msg-bg: #1a2e29;
+  --node-start: #66bb6a;
+  --node-end: #ef5350;
+  --node-llm: #4db6ac;
+  --node-code: #ffb74d;
+  --node-ifelse: #f06292;
+  --node-http: #4dd0e1;
+  --node-tool: #ce93d8;
+  --node-knowledge: #aed581;
+}
+[data-theme="violet"] {
+  --bg-primary: #14101f;
+  --bg-secondary: #1e1830;
+  --bg-tertiary: #2a2240;
+  --bg-card: #221c36;
+  --bg-hover: #322a4d;
+  --bg-input: #181229;
+  --bg-nav: #100c1a;
+  --bg-overlay: rgba(0,0,0,0.6);
+  --text-primary: #ece4f8;
+  --text-secondary: #a894c8;
+  --text-muted: #6e5e8a;
+  --text-inverse: #14101f;
+  --border-color: #322a4d;
+  --border-light: #3e3460;
+  --accent: #9c6cff;
+  --accent-hover: #8858e6;
+  --accent-light: rgba(156,108,255,0.15);
+  --success: #66bb6a;
+  --success-light: rgba(102,187,106,0.15);
+  --warning: #ffb74d;
+  --warning-light: rgba(255,183,77,0.15);
+  --danger: #ef5350;
+  --danger-light: rgba(239,83,80,0.15);
+  --info: #64b5f6;
+  --info-light: rgba(100,181,246,0.15);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --scrollbar-track: #1e1830;
+  --scrollbar-thumb: #3e3460;
+  --code-bg: #14101f;
+  --user-msg-bg: #322a4d;
+  --assistant-msg-bg: #221c36;
+  --node-start: #66bb6a;
+  --node-end: #ef5350;
+  --node-llm: #9c6cff;
+  --node-code: #ffb74d;
+  --node-ifelse: #f06292;
+  --node-http: #64b5f6;
+  --node-tool: #ce93d8;
+  --node-knowledge: #aed581;
+}
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+#app { height: 100%; display: flex; flex-direction: column; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+a { color: var(--accent); text-decoration: none; }
+input, textarea, select, button { font-family: inherit; font-size: inherit; }
+
+/* ========== LAYOUT ========== */
+.app-layout { display: flex; height: 100vh; overflow: hidden; }
+
+/* ========== NAV ========== */
+.nav-sidebar {
+  width: 60px; background: var(--bg-nav); border-right: 1px solid var(--border-color);
+  display: flex; flex-direction: column; align-items: center; padding: 12px 0;
+  transition: width var(--transition-speed), background var(--transition-speed);
+  z-index: 100; flex-shrink: 0;
+}
+.nav-sidebar.expanded { width: 180px; }
+.nav-logo {
+  width: 36px; height: 36px; border-radius: 10px; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 16px; margin-bottom: 24px;
+  cursor: pointer; flex-shrink: 0;
+}
+.nav-items { flex: 1; display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 0 8px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  border-radius: 10px; cursor: pointer; color: var(--text-muted);
+  transition: all 0.2s; white-space: nowrap; overflow: hidden;
+  text-decoration: none;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); }
+.nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+.nav-item span { font-size: 14px; display: none; }
+.nav-sidebar.expanded .nav-item span { display: inline; }
+.nav-bottom { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 0 8px; }
+
+/* ========== MAIN ========== */
+.main-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.page-header {
+  padding: 20px 28px 16px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary); flex-shrink: 0;
+  transition: background var(--transition-speed);
+}
+.page-header h1 { font-size: 20px; font-weight: 600; }
+.page-body { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+/* ========== BUTTONS ========== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border-radius: 8px; border: 1px solid var(--border-color);
+  background: var(--bg-tertiary); color: var(--text-primary);
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all 0.2s; white-space: nowrap;
+}
+.btn:hover { background: var(--bg-hover); border-color: var(--border-light); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-danger { background: var(--danger-light); color: var(--danger); border-color: transparent; }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success-light); color: var(--success); border-color: transparent; }
+.btn-success:hover { background: var(--success); color: #fff; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon {
+  width: 32px; height: 32px; padding: 0; display: flex;
+  align-items: center; justify-content: center; border-radius: 8px;
+}
+.btn svg { width: 16px; height: 16px; }
+
+/* ========== CARDS ========== */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 12px; padding: 20px; transition: all 0.2s; cursor: pointer;
+}
+.card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.card-title { font-size: 15px; font-weight: 600; }
+.card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; }
+.card-footer { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ========== BADGES ========== */
+.badge {
+  display: inline-flex; align-items: center; padding: 3px 10px;
+  border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-chat { background: var(--info-light); color: var(--info); }
+.badge-agent { background: var(--accent-light); color: var(--accent); }
+.badge-workflow { background: var(--success-light); color: var(--success); }
+.badge-text { background: var(--warning-light); color: var(--warning); }
+
+/* ========== FORM ========== */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary); }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 10px 14px; background: var(--bg-input);
+  border: 1px solid var(--border-color); border-radius: 8px;
+  color: var(--text-primary); font-size: 14px;
+  transition: border-color 0.2s;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none; border-color: var(--accent);
+}
+.form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+.form-select { cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239499b3' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.range-slider {
+  width: 100%; height: 6px; appearance: none; background: var(--border-color);
+  border-radius: 3px; outline: none;
+}
+.range-slider::-webkit-slider-thumb {
+  appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; border: 3px solid var(--bg-secondary);
+}
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; }
+.checkbox-label {
+  display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+  background: var(--bg-input); border: 1px solid var(--border-color);
+  border-radius: 8px; cursor: pointer; font-size: 13px;
+  transition: all 0.2s;
+}
+.checkbox-label:hover { border-color: var(--accent); }
+.checkbox-label input:checked + span { color: var(--accent); }
+.checkbox-label:has(input:checked) { border-color: var(--accent); background: var(--accent-light); }
+
+/* ========== MODAL ========== */
+.modal-overlay {
+  position: fixed; inset: 0; background: var(--bg-overlay);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.modal {
+  background: var(--bg-secondary); border: 1px solid var(--border-color);
+  border-radius: 16px; padding: 28px; width: 90%; max-width: 520px;
+  box-shadow: var(--shadow);
+}
+.modal-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+/* ========== FILTER BAR ========== */
+.filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.filter-chip {
+  padding: 6px 14px; border-radius: 20px; font-size: 13px;
+  background: var(--bg-tertiary); border: 1px solid var(--border-color);
+  cursor: pointer; transition: all 0.2s; color: var(--text-secondary);
+}
+.filter-chip:hover { border-color: var(--accent); color: var(--text-primary); }
+.filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ========== CHAT ========== */
+.chat-layout { display: flex; height: 100%; overflow: hidden; }
+.chat-sidebar {
+  width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border-color);
+  display: flex; flex-direction: column; flex-shrink: 0;
+  transition: background var(--transition-speed);
+}
+.chat-sidebar-header { padding: 16px; border-bottom: 1px solid var(--border-color); }
+.conv-list { flex: 1; overflow-y: auto; padding: 8px; }
+.conv-item {
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; color: var(--text-secondary); margin-bottom: 2px;
+  transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.conv-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.conv-item.active { background: var(--accent-light); color: var(--accent); }
+.chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px 28px; }
+.chat-msg { display: flex; gap: 12px; margin-bottom: 20px; }
+.chat-msg.user { flex-direction: row-reverse; }
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600;
+}
+.chat-msg.user .msg-avatar { background: var(--accent); color: #fff; }
+.chat-msg.assistant .msg-avatar { background: var(--success); color: #fff; }
+.msg-bubble {
+  max-width: 70%; padding: 12px 16px; border-radius: 12px;
+  font-size: 14px; line-height: 1.7; word-break: break-word;
+}
+.chat-msg.user .msg-bubble { background: var(--user-msg-bg); border-bottom-right-radius: 4px; }
+.chat-msg.assistant .msg-bubble { background: var(--assistant-msg-bg); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
+.msg-bubble pre {
+  background: var(--code-bg); border-radius: 8px; padding: 12px;
+  margin: 8px 0; overflow-x: auto; font-size: 13px;
+  border: 1px solid var(--border-color);
+}
+.msg-bubble code { font-family: 'Fira Code', 'Consolas', monospace; font-size: 13px; }
+.msg-bubble p { margin-bottom: 8px; }
+.msg-bubble p:last-child { margin-bottom: 0; }
+.msg-bubble ul, .msg-bubble ol { padding-left: 20px; margin: 8px 0; }
+.msg-bubble strong { color: var(--accent); }
+.msg-bubble em { color: var(--text-secondary); }
+.msg-bubble blockquote {
+  border-left: 3px solid var(--accent); padding-left: 12px;
+  margin: 8px 0; color: var(--text-secondary);
+}
+.msg-bubble h1, .msg-bubble h2, .msg-bubble h3 { margin: 10px 0 6px; }
+.msg-bubble h1 { font-size: 18px; }
+.msg-bubble h2 { font-size: 16px; }
+.msg-bubble h3 { font-size: 15px; }
+.chat-input-area {
+  padding: 16px 28px; border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+.chat-input-row { display: flex; gap: 10px; align-items: flex-end; }
+.chat-input {
+  flex: 1; padding: 12px 16px; background: var(--bg-input);
+  border: 1px solid var(--border-color); border-radius: 12px;
+  color: var(--text-primary); font-size: 14px; resize: none;
+  min-height: 44px; max-height: 150px; line-height: 1.5;
+}
+.chat-input:focus { outline: none; border-color: var(--accent); }
+.token-count { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: right; }
+
+/* ========== DEBUG PANEL ========== */
+.debug-panel {
+  width: 300px; background: var(--bg-secondary); border-left: 1px solid var(--border-color);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+.debug-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 13px; font-weight: 600; }
+.debug-content { flex: 1; overflow-y: auto; padding: 12px; }
+.debug-section { margin-bottom: 16px; }
+.debug-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.debug-item {
+  padding: 8px 10px; background: var(--bg-tertiary); border-radius: 6px;
+  font-size: 12px; margin-bottom: 6px; border-left: 3px solid var(--accent);
+}
+.debug-item .tool-name { font-weight: 600; color: var(--accent); }
+.debug-item .tool-result { color: var(--text-secondary); margin-top: 4px; word-break: break-all; }
+
+/* ========== WORKFLOW ========== */
+.workflow-layout { display: flex; height: 100%; overflow: hidden; }
+.workflow-palette {
+  width: 200px; background: var(--bg-secondary); border-right: 1px solid var(--border-color);
+  padding: 16px; flex-shrink: 0; overflow-y: auto;
+}
+.palette-title { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.palette-node {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: 8px; margin-bottom: 6px; cursor: grab;
+  border: 1px solid var(--border-color); transition: all 0.2s;
+  font-size: 13px; font-weight: 500;
+}
+.palette-node:hover { border-color: var(--accent); transform: translateX(2px); }
+.palette-node:active { cursor: grabbing; }
+.palette-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.workflow-canvas-wrapper { flex: 1; position: relative; overflow: hidden; background: var(--bg-primary); }
+.workflow-toolbar {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; background: var(--bg-secondary);
+  padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm); z-index: 10;
+}
+.workflow-canvas {
+  width: 100%; height: 100%; position: relative;
+}
+.workflow-node {
+  position: absolute; min-width: 180px; background: var(--bg-card);
+  border: 2px solid var(--border-color); border-radius: 10px;
+  cursor: move; user-select: none; z-index: 5;
+  box-shadow: var(--shadow-sm); transition: box-shadow 0.2s;
+}
+.workflow-node:hover { box-shadow: var(--shadow); }
+.workflow-node.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.node-header {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  border-radius: 8px 8px 0 0; font-size: 13px; font-weight: 600;
+  color: #fff;
+}
+.node-body { padding: 10px 14px; font-size: 12px; color: var(--text-secondary); }
+.node-ports { display: flex; justify-content: space-between; padding: 6px 14px 10px; }
+.node-port {
+  width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border-color);
+  background: var(--bg-card); cursor: crosshair; transition: all 0.2s;
+}
+.node-port:hover { transform: scale(1.3); border-color: var(--accent); background: var(--accent); }
+.workflow-config {
+  width: 300px; background: var(--bg-secondary); border-left: 1px solid var(--border-color);
+  padding: 16px; flex-shrink: 0; overflow-y: auto;
+}
+.config-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+
+/* SVG connections */
+.workflow-svg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 2;
+}
+.workflow-svg path { fill: none; stroke: var(--accent); stroke-width: 2; }
+
+/* ========== KNOWLEDGE ========== */
+.kb-layout { display: flex; height: 100%; overflow: hidden; }
+.kb-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.kb-sidebar {
+  width: 320px; background: var(--bg-secondary); border-right: 1px solid var(--border-color);
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+.kb-content { flex: 1; overflow-y: auto; padding: 20px; }
+.doc-list { padding: 8px; flex: 1; overflow-y: auto; }
+.doc-item {
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 4px;
+  cursor: pointer; font-size: 13px; color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.2s;
+}
+.doc-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.doc-item.active { background: var(--accent-light); color: var(--accent); }
+.segment-item {
+  padding: 12px; background: var(--bg-tertiary); border-radius: 8px;
+  margin-bottom: 8px; border: 1px solid var(--border-color);
+  font-size: 13px; line-height: 1.6; color: var(--text-secondary);
+}
+.search-result {
+  padding: 12px; background: var(--bg-tertiary); border-radius: 8px;
+  margin-bottom: 8px; border-left: 3px solid var(--accent);
+}
+.search-score { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+/* ========== SETTINGS ========== */
+.settings-section { margin-bottom: 32px; }
+.settings-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--border-light);
+}
+.settings-row:last-child { border-bottom: none; }
+.provider-card {
+  display: flex; align-items: center; gap: 16px; padding: 16px;
+  background: var(--bg-tertiary); border-radius: 10px; margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+}
+.provider-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff;
+}
+.tool-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--bg-tertiary);
+  border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border-color);
+}
+
+/* ========== THEME TOGGLE ========== */
+.theme-selector {
+  position: relative; display: inline-flex;
+}
+.theme-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px; border-radius: 8px; }
+.theme-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.theme-btn svg { width: 20px; height: 20px; }
+.theme-dropdown {
+  position: absolute; top: 100%; right: 0; background: var(--bg-secondary);
+  border: 1px solid var(--border-color); border-radius: 10px;
+  padding: 6px; min-width: 140px; box-shadow: var(--shadow);
+  z-index: 200;
+}
+.theme-option {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border-radius: 6px; cursor: pointer; font-size: 13px;
+  color: var(--text-secondary); transition: all 0.15s;
+}
+.theme-option:hover { background: var(--bg-hover); color: var(--text-primary); }
+.theme-option.active { color: var(--accent); background: var(--accent-light); }
+.theme-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.fade-enter { animation: fadeIn 0.25s ease; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.pulse { animation: pulse 1.5s infinite; }
+.cursor-blink::after { content: '▋'; animation: pulse 1s infinite; color: var(--accent); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .chat-sidebar, .debug-panel, .workflow-palette, .workflow-config, .kb-sidebar { display: none; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="app-layout">
+    <!-- LEFT NAV -->
+    <nav class="nav-sidebar" :class="{ expanded: navExpanded }">
+      <div class="nav-logo" @click="navExpanded = !navExpanded">A</div>
+      <div class="nav-items">
+        <a class="nav-item" :class="{ active: page === 'apps' || page === 'app-detail' || page === 'chat' || page === 'workflow' }" @click="navigate('apps')" href="#/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>应用</span>
+        </a>
+        <a class="nav-item" :class="{ active: page === 'knowledge' }" @click="navigate('knowledge')" href="#/knowledge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          <span>知识库</span>
+        </a>
+        <a class="nav-item" :class="{ active: page === 'settings' }" @click="navigate('settings')" href="#/settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>设置</span>
+        </a>
+      </div>
+      <div class="nav-bottom">
+        <div class="theme-selector">
+          <button class="theme-btn" @click="showThemeMenu = !showThemeMenu" title="切换主题">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+          <div class="theme-dropdown" v-if="showThemeMenu">
+            <div class="theme-option" v-for="t in themes" :key="t.key" :class="{ active: currentTheme === t.key }" @click="setTheme(t.key)">
+              <span class="theme-dot" :style="{ background: t.color }"></span>{{ t.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+      <!-- ===== APPS PAGE ===== -->
+      <template v-if="page === 'apps'">
+        <div class="page-header">
+          <h1>🤖 应用管理</h1>
+          <div class="filter-bar">
+            <span class="filter-chip" :class="{ active: appFilter === 'all' }" @click="appFilter = 'all'">全部</span>
+            <span class="filter-chip" :class="{ active: appFilter === 'chat' }" @click="appFilter = 'chat'">聊天助手</span>
+            <span class="filter-chip" :class="{ active: appFilter === 'agent' }" @click="appFilter = 'agent'">智能体</span>
+            <span class="filter-chip" :class="{ active: appFilter === 'workflow' }" @click="appFilter = 'workflow'">工作流</span>
+            <button class="btn btn-primary" @click="showCreateApp = true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              创建应用
+            </button>
+          </div>
+        </div>
+        <div class="page-body fade-enter">
+          <div class="card-grid">
+            <div class="card" v-for="app in filteredApps" :key="app.id" @click="openApp(app.id)">
+              <div class="card-header">
+                <span class="card-title">{{ app.name }}</span>
+                <span class="badge" :class="'badge-' + app.type">{{ typeLabel(app.type) }}</span>
+              </div>
+              <div class="card-desc">{{ app.description }}</div>
+              <div class="card-footer" @click.stop>
+                <button class="btn btn-sm" @click="openApp(app.id)">⚙️ 配置</button>
+                <button class="btn btn-sm" @click="openChat(app.id)">💬 对话</button>
+                <button class="btn btn-sm btn-danger" @click="deleteApp(app.id)">🗑</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== APP DETAIL PAGE ===== -->
+      <template v-if="page === 'app-detail'">
+        <div class="page-header">
+          <h1>⚙️ {{ currentApp?.name || '应用配置' }}</h1>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" @click="navigate('apps')">← 返回</button>
+            <button class="btn btn-primary" @click="saveApp">💾 保存</button>
+            <button class="btn btn-success" @click="openChat(appId)">💬 打开对话</button>
+            <button class="btn" @click="openWorkflow(appId)">🔧 编辑工作流</button>
+          </div>
+        </div>
+        <div class="page-body fade-enter" v-if="currentApp">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            <div>
+              <div class="form-group">
+                <label class="form-label">系统提示词</label>
+                <textarea class="form-textarea" v-model="currentApp.system_prompt" rows="8" placeholder="输入系统提示词..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">模型选择</label>
+                <select class="form-select" v-model="currentApp.model">
+                  <option value="deepseek-chat">DeepSeek Chat</option>
+                  <option value="deepseek-coder">DeepSeek Coder</option>
+                  <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+                  <option value="qwen-max">通义千问 Max</option>
+                  <option value="llama3">Llama 3 (Ollama)</option>
+                  <option value="qwen2.5">Qwen 2.5 (Ollama)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">温度: {{ currentApp.temperature }}</label>
+                <input type="range" class="range-slider" v-model.number="currentApp.temperature" min="0" max="2" step="0.1">
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label class="form-label">绑定工具</label>
+                <div class="checkbox-group">
+                  <label class="checkbox-label" v-for="tool in allTools" :key="tool.id">
+                    <input type="checkbox" :value="tool.id" v-model="currentApp.tools"> <span>{{ tool.name }}</span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">绑定知识库</label>
+                <div class="checkbox-group">
+                  <label class="checkbox-label" v-for="kb in allKnowledgeBases" :key="kb.id">
+                    <input type="checkbox" :value="kb.id" v-model="currentApp.knowledge_bases"> <span>{{ kb.name }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== CHAT PAGE ===== -->
+      <template v-if="page === 'chat'">
+        <div class="chat-layout">
+          <div class="chat-sidebar">
+            <div class="chat-sidebar-header" style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-weight:600;font-size:14px;">对话列表</span>
+              <button class="btn btn-sm btn-primary" @click="createConversation">+ 新对话</button>
+            </div>
+            <div class="conv-list">
+              <div class="conv-item" v-for="c in conversations" :key="c.id" :class="{ active: c.id === currentConvId }" @click="currentConvId = c.id">
+                {{ c.title }}
+              </div>
+            </div>
+            <div style="padding:12px;">
+              <button class="btn btn-sm" @click="navigate('app-detail')" style="width:100%">← 返回应用配置</button>
+            </div>
+          </div>
+          <div class="chat-main">
+            <div class="page-header">
+              <h1 style="font-size:16px;">💬 {{ currentApp?.name || '对话' }}</h1>
+            </div>
+            <div class="chat-messages" ref="chatMessages">
+              <div class="chat-msg" v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
+                <div class="msg-avatar">{{ msg.role === 'user' ? 'U' : 'A' }}</div>
+                <div class="msg-bubble" v-html="renderMarkdown(msg.content)"></div>
+              </div>
+              <div class="chat-msg assistant" v-if="streaming">
+                <div class="msg-avatar">A</div>
+                <div class="msg-bubble" v-html="renderMarkdown(streamContent)"><span class="cursor-blink"></span></div>
+              </div>
+            </div>
+            <div class="chat-input-area">
+              <div class="chat-input-row">
+                <textarea class="chat-input" v-model="chatInput" @keydown.enter.exact.prevent="sendMessage" placeholder="输入消息... (Enter发送)" rows="1"></textarea>
+                <button class="btn btn-primary" @click="sendMessage" :disabled="streaming || !chatInput.trim()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+              <div class="token-count">Token 消耗: {{ tokenCount }} | 本轮: {{ currentTokenCount }}</div>
+            </div>
+          </div>
+          <div class="debug-panel">
+            <div class="debug-header">🔍 调试信息</div>
+            <div class="debug-content">
+              <div class="debug-section">
+                <div class="debug-section-title">工具调用</div>
+                <div v-if="debugInfo.toolCalls.length === 0" style="color:var(--text-muted);font-size:12px;">暂无工具调用</div>
+                <div class="debug-item" v-for="(tc, i) in debugInfo.toolCalls" :key="i">
+                  <div class="tool-name">{{ tc.name }}</div>
+                  <div class="tool-result">{{ tc.result }}</div>
+                </div>
+              </div>
+              <div class="debug-section">
+                <div class="debug-section-title">检索结果</div>
+                <div v-if="debugInfo.retrievals.length === 0" style="color:var(--text-muted);font-size:12px;">暂无检索结果</div>
+                <div class="debug-item" v-for="(r, i) in debugInfo.retrievals" :key="i">
+                  <div class="tool-name">{{ r.source }}</div>
+                  <div class="tool-result">{{ r.content }}</div>
+                </div>
+              </div>
+              <div class="debug-section">
+                <div class="debug-section-title">模型信息</div>
+                <div class="debug-item">
+                  <div>模型: {{ currentApp?.model || '-' }}</div>
+                  <div>温度: {{ currentApp?.temperature || '-' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== WORKFLOW PAGE ===== -->
+      <template v-if="page === 'workflow'">
+        <div class="workflow-layout">
+          <div class="workflow-palette">
+            <div class="palette-title">节点类型</div>
+            <div class="palette-node" v-for="nt in nodeTypes" :key="nt.type" draggable="true" @dragstart="onPaletteDragStart($event, nt.type)">
+              <span class="palette-dot" :style="{ background: nt.color }"></span>
+              {{ nt.label }}
+            </div>
+            <div style="margin-top:20px;">
+              <button class="btn btn-sm" @click="navigate('app-detail')" style="width:100%">← 返回配置</button>
+            </div>
+          </div>
+          <div class="workflow-canvas-wrapper" ref="canvasWrapper" @drop="onCanvasDrop" @dragover.prevent @mousedown="onCanvasMouseDown">
+            <div class="workflow-toolbar">
+              <button class="btn btn-sm btn-success" @click="runWorkflow">▶ 运行</button>
+              <button class="btn btn-sm btn-primary" @click="saveWorkflow">💾 保存</button>
+              <button class="btn btn-sm" @click="exportWorkflow">📤 导出</button>
+              <button class="btn btn-sm btn-danger" @click="deleteSelectedNode" v-if="selectedNode">🗑 删除节点</button>
+            </div>
+            <svg class="workflow-svg" ref="workflowSvg">
+              <path v-for="(conn, i) in workflowConnections" :key="i"
+                :d="getConnectionPath(conn)"
+                stroke-width="2" fill="none"
+                :style="{ stroke: 'var(--accent)', strokeDasharray: conn.animating ? '5,5' : 'none' }"
+              />
+              <!-- temp connection while dragging -->
+              <path v-if="tempConnection" :d="tempConnectionPath" stroke="var(--accent)" stroke-width="2" fill="none" stroke-dasharray="5,5" />
+            </svg>
+            <div class="workflow-node" v-for="node in workflowNodes" :key="node.id"
+              :style="{ left: node.x + 'px', top: node.y + 'px', borderColor: selectedNode?.id === node.id ? 'var(--accent)' : nodeColor(node.type) }"
+              :class="{ selected: selectedNode?.id === node.id }"
+              @mousedown.stop="onNodeMouseDown($event, node)"
+              @click.stop="selectNode(node)">
+              <div class="node-header" :style="{ background: nodeColor(node.type) }">
+                <span>{{ nodeIcon(node.type) }}</span> {{ nodeLabel(node.type) }}
+              </div>
+              <div class="node-body">{{ node.config?.label || node.config?.prompt?.substring(0, 30) || '点击配置' }}</div>
+              <div class="node-ports">
+                <div class="node-port" @mousedown.stop="startConnection($event, node, 'in')" title="输入"></div>
+                <div class="node-port" @mousedown.stop="startConnection($event, node, 'out')" title="输出"></div>
+              </div>
+            </div>
+          </div>
+          <div class="workflow-config" v-if="selectedNode">
+            <div class="config-title">节点配置</div>
+            <div class="form-group">
+              <label class="form-label">节点类型</label>
+              <input class="form-input" :value="nodeLabel(selectedNode.type)" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">标签</label>
+              <input class="form-input" v-model="selectedNode.config.label" placeholder="节点标签">
+            </div>
+            <template v-if="selectedNode.type === 'llm'">
+              <div class="form-group">
+                <label class="form-label">模型</label>
+                <select class="form-select" v-model="selectedNode.config.model">
+                  <option value="deepseek-chat">DeepSeek Chat</option>
+                  <option value="deepseek-coder">DeepSeek Coder</option>
+                  <option value="llama3">Llama 3</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">提示词</label>
+                <textarea class="form-textarea" v-model="selectedNode.config.prompt" rows="4"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">温度: {{ selectedNode.config.temperature || 0.7 }}</label>
+                <input type="range" class="range-slider" v-model.number="selectedNode.config.temperature" min="0" max="2" step="0.1">
+              </div>
+            </template>
+            <template v-if="selectedNode.type === 'code'">
+              <div class="form-group">
+                <label class="form-label">代码</label>
+                <textarea class="form-textarea" v-model="selectedNode.config.code" rows="8" style="font-family:monospace;"></textarea>
+              </div>
+            </template>
+            <template v-if="selectedNode.type === 'ifelse'">
+              <div class="form-group">
+                <label class="form-label">条件表达式</label>
+                <input class="form-input" v-model="selectedNode.config.condition" placeholder="例如: output.includes('yes')">
+              </div>
+            </template>
+            <template v-if="selectedNode.type === 'http'">
+              <div class="form-group">
+                <label class="form-label">请求URL</label>
+                <input class="form-input" v-model="selectedNode.config.url" placeholder="https://api.example.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">方法</label>
+                <select class="form-select" v-model="selectedNode.config.method">
+                  <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+                </select>
+              </div>
+            </template>
+            <template v-if="selectedNode.type === 'tool'">
+              <div class="form-group">
+                <label class="form-label">选择工具</label>
+                <select class="form-select" v-model="selectedNode.config.tool_id">
+                  <option v-for="t in allTools" :key="t.id" :value="t.id">{{ t.name }}</option>
+                </select>
+              </div>
+            </template>
+            <template v-if="selectedNode.type === 'knowledge'">
+              <div class="form-group">
+                <label class="form-label">知识库</label>
+                <select class="form-select" v-model="selectedNode.config.kb_id">
+                  <option v-for="kb in allKnowledgeBases" :key="kb.id" :value="kb.id">{{ kb.name }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Top K</label>
+                <input class="form-input" type="number" v-model.number="selectedNode.config.top_k" min="1" max="20">
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== KNOWLEDGE PAGE ===== -->
+      <template v-if="page === 'knowledge'">
+        <div class="page-header">
+          <h1>📚 知识库</h1>
+          <button class="btn btn-primary" @click="showCreateKB = true">+ 新建知识库</button>
+        </div>
+        <div class="page-body fade-enter">
+          <template v-if="!selectedKB">
+            <div class="card-grid">
+              <div class="card" v-for="kb in knowledgeBases" :key="kb.id" @click="selectedKB = kb">
+                <div class="card-header">
+                  <span class="card-title">{{ kb.name }}</span>
+                  <span class="badge badge-text">{{ kb.doc_count }} 文档</span>
+                </div>
+                <div class="card-desc">{{ kb.description }}</div>
+                <div class="card-footer" @click.stop>
+                  <button class="btn btn-sm" @click="selectedKB = kb">📄 文档</button>
+                  <button class="btn btn-sm" @click="testKB = kb">🔍 测试</button>
+                  <button class="btn btn-sm btn-danger" @click="deleteKB(kb.id)">🗑</button>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;height:calc(100vh - 140px);">
+              <div style="background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border-color);display:flex;flex-direction:column;overflow:hidden;">
+                <div style="padding:14px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-weight:600;font-size:14px;">{{ selectedKB.name }}</span>
+                  <button class="btn btn-sm" @click="selectedKB = null">✕</button>
+                </div>
+                <div class="doc-list">
+                  <div class="doc-item" v-for="doc in selectedKB.documents" :key="doc.id" :class="{ active: selectedDoc?.id === doc.id }" @click="selectedDoc = doc">
+                    <span>📄 {{ doc.name }}</span>
+                    <span style="font-size:11px;color:var(--text-muted);">{{ doc.segments }}段</span>
+                  </div>
+                </div>
+                <div style="padding:12px;border-top:1px solid var(--border-color);">
+                  <button class="btn btn-primary btn-sm" style="width:100%;" @click="uploadDoc">📤 上传文档</button>
+                </div>
+              </div>
+              <div style="background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border-color);overflow-y:auto;padding:20px;">
+                <template v-if="selectedDoc">
+                  <h3 style="margin-bottom:16px;">{{ selectedDoc.name }} - 分段预览</h3>
+                  <div class="segment-item" v-for="(seg, i) in selectedDoc.segmentList" :key="i">
+                    <div style="font-size:11px;color:var(--accent);margin-bottom:6px;">分段 #{{ i+1 }} | {{ seg.length }} 字</div>
+                    {{ seg }}
+                  </div>
+                </template>
+                <template v-else>
+                  <div style="text-align:center;color:var(--text-muted);padding:60px;">← 选择文档查看分段</div>
+                </template>
+              </div>
+            </div>
+          </template>
+          <!-- Search test modal -->
+          <div class="modal-overlay" v-if="testKB" @click.self="testKB = null">
+            <div class="modal">
+              <div class="modal-title">🔍 检索测试 - {{ testKB.name }}</div>
+              <div class="form-group">
+                <input class="form-input" v-model="searchQuery" placeholder="输入检索关键词..." @keydown.enter="runSearch">
+              </div>
+              <button class="btn btn-primary" @click="runSearch" style="margin-bottom:16px;">搜索</button>
+              <div class="search-result" v-for="(r, i) in searchResults" :key="i">
+                <div class="search-score">相关度: {{ r.score }}</div>
+                <div style="margin-top:6px;font-size:13px;color:var(--text-secondary);line-height:1.6;">{{ r.content }}</div>
+                <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">来源: {{ r.source }}</div>
+              </div>
+              <div class="modal-actions">
+                <button class="btn" @click="testKB = null">关闭</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== SETTINGS PAGE ===== -->
+      <template v-if="page === 'settings'">
+        <div class="page-header">
+          <h1>⚙️ 系统设置</h1>
+        </div>
+        <div class="page-body fade-enter">
+          <div class="settings-section">
+            <div class="settings-title">模型供应商</div>
+            <div class="provider-card" v-for="p in providers" :key="p.name">
+              <div class="provider-icon" :style="{ background: p.color }">{{ p.icon }}</div>
+              <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;">{{ p.name }}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">{{ p.desc }}</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input class="form-input" style="width:260px;" v-model="p.apiKey" :placeholder="p.keyPlaceholder" type="password">
+                <span class="badge" :class="p.apiKey ? 'badge-workflow' : 'badge-agent'" style="cursor:pointer;" @click="p.apiKey = ''">{{ p.apiKey ? '已配置' : '未配置' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">API 密钥管理</div>
+            <div class="settings-row" v-for="key in apiKeys" :key="key.id">
+              <div>
+                <div style="font-weight:500;">{{ key.name }}</div>
+                <div style="font-size:12px;color:var(--text-muted);">{{ key.key }}</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-sm" @click="copyKey(key.key)">📋 复制</button>
+                <button class="btn btn-sm btn-danger" @click="deleteApiKey(key.id)">🗑</button>
+              </div>
+            </div>
+            <button class="btn btn-primary" @click="addApiKey" style="margin-top:12px;">+ 添加密钥</button>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">工具管理</div>
+            <div class="tool-item" v-for="tool in allTools" :key="tool.id">
+              <div>
+                <div style="font-weight:500;">🔧 {{ tool.name }}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">{{ tool.description }}</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="badge" :class="tool.enabled ? 'badge-workflow' : 'badge-agent'">{{ tool.enabled ? '已启用' : '已禁用' }}</span>
+                <button class="btn btn-sm" @click="tool.enabled = !tool.enabled">{{ tool.enabled ? '禁用' : '启用' }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- ===== CREATE APP MODAL ===== -->
+  <div class="modal-overlay" v-if="showCreateApp" @click.self="showCreateApp = false">
+    <div class="modal">
+      <div class="modal-title">创建新应用</div>
+      <div class="form-group">
+        <label class="form-label">应用名称</label>
+        <input class="form-input" v-model="newApp.name" placeholder="输入应用名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">应用类型</label>
+        <select class="form-select" v-model="newApp.type">
+          <option value="chat">聊天助手</option>
+          <option value="agent">智能体</option>
+          <option value="workflow">工作流</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">描述</label>
+        <textarea class="form-textarea" v-model="newApp.description" rows="3" placeholder="输入应用描述..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" @click="showCreateApp = false">取消</button>
+        <button class="btn btn-primary" @click="createApp">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CREATE KB MODAL ===== -->
+  <div class="modal-overlay" v-if="showCreateKB" @click.self="showCreateKB = false">
+    <div class="modal">
+      <div class="modal-title">新建知识库</div>
+      <div class="form-group">
+        <label class="form-label">知识库名称</label>
+        <input class="form-input" v-model="newKB.name" placeholder="输入知识库名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">描述</label>
+        <textarea class="form-textarea" v-model="newKB.description" rows="3" placeholder="输入描述..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" @click="showCreateKB = false">取消</button>
+        <button class="btn btn-primary" @click="createKB">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div v-if="toast.show" style="position:fixed;top:20px;right:20px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:var(--shadow);transition:all 0.3s;"
+    :style="{ background: toast.type === 'success' ? 'var(--success)' : toast.type === 'error' ? 'var(--danger)' : 'var(--accent)', color: '#fff' }">
+    {{ toast.message }}
+  </div>
+</div>
+
+<script>
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+const app = createApp({
+  setup() {
+    // ===== THEME =====
+    const themes = [
+      { key: 'dark', label: '暗夜', color: '#0f1117' },
+      { key: 'light', label: '明亮', color: '#f5f6fa' },
+      { key: 'warm', label: '暖橙', color: '#1a1410' },
+      { key: 'mint', label: '薄荷', color: '#0e1a17' },
+      { key: 'violet', label: '紫罗兰', color: '#14101f' },
+    ];
+    const currentTheme = ref(localStorage.getItem('theme') || 'dark');
+    const showThemeMenu = ref(false);
+    const setTheme = (t) => { currentTheme.value = t; document.documentElement.dataset.theme = t; localStorage.setItem('theme', t); showThemeMenu.value = false; };
+    onMounted(() => setTheme(currentTheme.value));
+
+    // ===== NAV =====
+    const navExpanded = ref(false);
+    const page = ref('apps');
+    const appId = ref(null);
+
+    const navigate = (p, id) => {
+      page.value = p;
+      if (id !== undefined) appId.value = id;
+      window.location.hash = p === 'apps' ? '/' : p === 'app-detail' ? `/apps/${id}` : p === 'chat' ? `/apps/${id}/chat` : p === 'workflow' ? `/apps/${id}/workflow` : `/${p}`;
+    };
+
+    // ===== ROUTING =====
+    const handleRoute = () => {
+      const hash = window.location.hash.slice(1) || '/';
+      if (hash === '/') { page.value = 'apps'; }
+      else if (hash.match(/^\/apps\/(\d+)\/chat$/)) { const m = hash.match(/(\d+)/); page.value = 'chat'; appId.value = parseInt(m[1]); initChat(); }
+      else if (hash.match(/^\/apps\/(\d+)\/workflow$/)) { const m = hash.match(/(\d+)/); page.value = 'workflow'; appId.value = parseInt(m[1]); }
+      else if (hash.match(/^\/apps\/(\d+)$/)) { const m = hash.match(/(\d+)/); page.value = 'app-detail'; appId.value = parseInt(m[1]); }
+      else if (hash === '/knowledge') { page.value = 'knowledge'; }
+      else if (hash === '/settings') { page.value = 'settings'; }
+    };
+    window.addEventListener('hashchange', handleRoute);
+    onMounted(handleRoute);
+
+    // ===== TOAST =====
+    const toast = ref({ show: false, message: '', type: 'success' });
+    const showToast = (msg, type = 'success') => { toast.value = { show: true, message: msg, type }; setTimeout(() => toast.value.show = false, 2500); };
+
+    // ===== APPS DATA =====
+    let nextId = 100;
+    const apps = ref([
+      { id: 1, name: '客服助手', type: 'chat', description: '智能客服机器人，自动回答常见问题', system_prompt: '你是一个专业的客服助手，请用友好专业的语气回答用户问题。', model: 'deepseek-chat', temperature: 0.7, tools: [1], knowledge_bases: [1] },
+      { id: 2, name: '代码审查', type: 'agent', description: '自动审查代码质量，提供优化建议', system_prompt: '你是一个代码审查专家，检查代码中的bug、安全漏洞和优化空间。', model: 'deepseek-coder', temperature: 0.3, tools: [2], knowledge_bases: [] },
+      { id: 3, name: '数据处理流', type: 'workflow', description: '自动化数据清洗和转换工作流', system_prompt: '', model: 'deepseek-chat', temperature: 0.5, tools: [3], knowledge_bases: [2] },
+      { id: 4, name: '文档问答', type: 'chat', description: '基于上传文档的智能问答系统', system_prompt: '基于提供的文档内容回答用户问题，如果文档中没有相关信息请明确告知。', model: 'deepseek-chat', temperature: 0.5, tools: [], knowledge_bases: [1, 2] },
+    ]);
+    const appFilter = ref('all');
+    const filteredApps = computed(() => appFilter.value === 'all' ? apps.value : apps.value.filter(a => a.type === appFilter.value));
+    const currentApp = computed(() => apps.value.find(a => a.id === appId.value));
+    const typeLabel = (t) => ({ chat: '聊天助手', agent: '智能体', workflow: '工作流' }[t] || t);
+    const showCreateApp = ref(false);
+    const newApp = ref({ name: '', type: 'chat', description: '' });
+    const createApp = () => {
+      if (!newApp.value.name.trim()) return showToast('请输入应用名称', 'error');
+      apps.value.push({ id: nextId++, ...newApp.value, system_prompt: '', model: 'deepseek-chat', temperature: 0.7, tools: [], knowledge_bases: [] });
+      showCreateApp.value = false; newApp.value = { name: '', type: 'chat', description: '' };
+      showToast('应用创建成功');
+    };
+    const deleteApp = (id) => { apps.value = apps.value.filter(a => a.id !== id); showToast('应用已删除'); };
+    const openApp = (id) => navigate('app-detail', id);
+    const openChat = (id) => navigate('chat', id);
+    const openWorkflow = (id) => navigate('workflow', id);
+    const saveApp = () => showToast('应用配置已保存');
+
+    // ===== TOOLS =====
+    const allTools = ref([
+      { id: 1, name: 'Web搜索', description: '在线搜索信息', enabled: true },
+      { id: 2, name: '代码执行', description: '运行Python/JS代码', enabled: true },
+      { id: 3, name: '数据库查询', description: 'SQL数据库查询', enabled: true },
+      { id: 4, name: '文件操作', description: '读写文件系统', enabled: false },
+      { id: 5, name: 'API调用', description: '外部API请求', enabled: true },
+      { id: 6, name: '图片生成', description: 'AI图片生成', enabled: false },
+    ]);
+
+    // ===== KNOWLEDGE BASES =====
+    const knowledgeBases = ref([
+      {
+        id: 1, name: '产品文档', description: '产品使用手册和API文档', doc_count: 12,
+        documents: [
+          { id: 1, name: '快速入门指南.md', segments: 8, segmentList: ['本指南将帮助您快速上手我们的产品平台。首先，请确保您已注册账号并完成实名认证。', '创建第一个应用：进入应用管理页面，点击"创建应用"按钮，选择应用类型（聊天助手/智能体/工作流）。', '配置系统提示词：系统提示词决定了AI助手的行为模式和回复风格。建议使用清晰、具体的指令。'] },
+          { id: 2, name: 'API参考文档.md', segments: 15, segmentList: ['REST API基础地址：https://api.agent-platform.com/v1', '认证方式：所有API请求需要在Header中携带Authorization: Bearer <api_key>', 'POST /chat/completions - 聊天补全接口，支持流式和非流式返回'] },
+        ]
+      },
+      {
+        id: 2, name: '技术知识库', description: '编程技术和最佳实践', doc_count: 8,
+        documents: [
+          { id: 3, name: 'Python最佳实践.md', segments: 10, segmentList: ['Python代码规范：遵循PEP 8编码规范，使用有意义的变量命名。', '错误处理：使用try-except捕获异常，避免使用裸except。记录详细的错误日志。', '性能优化：使用列表推导式代替for循环，利用生成器处理大数据集。'] },
+        ]
+      },
+    ]);
+    const allKnowledgeBases = computed(() => knowledgeBases.value);
+    const selectedKB = ref(null);
+    const selectedDoc = ref(null);
+    const testKB = ref(null);
+    const searchQuery = ref('');
+    const searchResults = ref([]);
+    const showCreateKB = ref(false);
+    const newKB = ref({ name: '', description: '' });
+    const createKB = () => {
+      if (!newKB.value.name.trim()) return showToast('请输入知识库名称', 'error');
+      knowledgeBases.value.push({ id: nextId++, ...newKB.value, doc_count: 0, documents: [] });
+      showCreateKB.value = false; newKB.value = { name: '', description: '' }; showToast('知识库创建成功');
+    };
+    const deleteKB = (id) => { knowledgeBases.value = knowledgeBases.value.filter(k => k.id !== id); showToast('知识库已删除'); };
+    const uploadDoc = () => {
+      if (!selectedKB.value) return;
+      const docId = nextId++;
+      const docs = ['新上传文档.txt', '导入资料.md', '知识条目.json'];
+      selectedKB.value.documents.push({ id: docId, name: docs[Math.floor(Math.random()*docs.length)], segments: Math.floor(Math.random()*10)+3, segmentList: ['这是新上传文档的第一段内容，包含了基本的概述信息。', '第二段详细描述了具体的操作步骤和注意事项。', '最后一段是总结和附录参考信息。'] });
+      selectedKB.value.doc_count++;
+      showToast('文档上传成功');
+    };
+    const runSearch = () => {
+      if (!searchQuery.value.trim()) return;
+      searchResults.value = [
+        { score: '0.95', content: '相关内容片段：' + searchQuery.value + ' 的最佳实践指南...', source: '产品文档/快速入门指南.md' },
+        { score: '0.87', content: '关于 ' + searchQuery.value + ' 的详细说明和配置方法...', source: '产品文档/API参考文档.md' },
+        { score: '0.72', content: '在实际应用中，' + searchQuery.value + ' 需要注意以下几点...', source: '技术知识库/Python最佳实践.md' },
+      ];
+    };
+
+    // ===== CHAT =====
+    const conversations = ref([
+      { id: 1, title: '新对话', messages: [] },
+    ]);
+    const currentConvId = ref(1);
+    const chatInput = ref('');
+    const streaming = ref(false);
+    const streamContent = ref('');
+    const tokenCount = ref(0);
+    const currentTokenCount = ref(0);
+    const chatMessages = ref(null);
+    const debugInfo = ref({ toolCalls: [], retrievals: [] });
+
+    const currentMessages = computed(() => conversations.value.find(c => c.id === currentConvId.value)?.messages || []);
+    const createConversation = () => {
+      const id = Date.now();
+      conversations.value.unshift({ id, title: '新对话', messages: [] });
+      currentConvId.value = id;
+    };
+    const initChat = () => { /* reset if needed */ };
+
+    const sendMessage = async () => {
+      const text = chatInput.value.trim();
+      if (!text || streaming.value) return;
+      const conv = conversations.value.find(c => c.id === currentConvId.value);
+      if (!conv) return;
+      conv.messages.push({ role: 'user', content: text });
+      chatInput.value = '';
+      currentTokenCount.value = Math.floor(text.length * 1.5);
+      tokenCount.value += currentTokenCount.value;
+      streaming.value = true;
+      streamContent.value = '';
+
+      // Simulated SSE streaming response
+      const responses = [
+        '好的，我来为您解答这个问题。\n\n',
+        '**首先**，让我们了解一下基本概念：\n\n',
+        '1. 这是一个**智能体平台**，类似于Dify\n',
+        '2. 支持多种模型：DeepSeek、通义千问、Llama等\n',
+        '3. 可以绑定知识库和工具\n\n',
+        '```python\n# 示例代码\nfrom agent_platform import Agent\n\nagent = Agent(\n    name="我的助手",\n    model="deepseek-chat",\n    temperature=0.7\n)\nresponse = agent.chat("你好！")\nprint(response)\n```\n\n',
+        '> 💡 **提示**：您可以在左侧知识库页面上传文档，让助手基于文档内容回答问题。\n\n',
+        '如果还有其他问题，请随时提问！',
+      ];
+
+      // Simulate debug info
+      if (text.includes('搜索') || text.includes('查询')) {
+        debugInfo.value.toolCalls = [{ name: 'Web搜索', result: '搜索完成，返回5条结果' }];
+      } else {
+        debugInfo.value.toolCalls = [];
+      }
+      if (currentApp.value?.knowledge_bases?.length) {
+        debugInfo.value.retrievals = [{ source: '产品文档/快速入门指南.md', content: '相关内容片段...' }];
+      } else {
+        debugInfo.value.retrievals = [];
+      }
+
+      for (const chunk of responses) {
+        for (let i = 0; i < chunk.length; i++) {
+          streamContent.value += chunk[i];
+          await new Promise(r => setTimeout(r, 15));
+        }
+        await new Promise(r => setTimeout(r, 100));
+      }
+      conv.messages.push({ role: 'assistant', content: streamContent.value });
+      currentTokenCount.value = Math.floor(streamContent.value.length * 0.6);
+      tokenCount.value += currentTokenCount.value;
+      streaming.value = false;
+      await nextTick();
+      if (chatMessages.value) chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
+    };
+
+    // ===== MARKDOWN RENDERING =====
+    const renderMarkdown = (text) => {
+      if (!text) return '';
+      let html = text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        // Code blocks
+        .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code class="lang-${lang}">${code.trim()}</code></pre>`)
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Headers
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        // Bold & Italic
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // Blockquote
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        // Lists
+        .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        // Links
+        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
+        // Paragraphs
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+      return '<p>' + html + '</p>';
+    };
+
+    // ===== WORKFLOW =====
+    const nodeTypes = [
+      { type: 'start', label: '开始', color: 'var(--node-start)' },
+      { type: 'end', label: '结束', color: 'var(--node-end)' },
+      { type: 'llm', label: 'LLM', color: 'var(--node-llm)' },
+      { type: 'code', label: '代码执行', color: 'var(--node-code)' },
+      { type: 'ifelse', label: '条件判断', color: 'var(--node-ifelse)' },
+      { type: 'http', label: 'HTTP请求', color: 'var(--node-http)' },
+      { type: 'tool', label: '工具调用', color: 'var(--node-tool)' },
+      { type: 'knowledge', label: '知识检索', color: 'var(--node-knowledge)' },
+    ];
+    const nodeColor = (type) => nodeTypes.find(n => n.type === type)?.color || 'var(--accent)';
+    const nodeLabel = (type) => nodeTypes.find(n => n.type === type)?.label || type;
+    const nodeIcon = (type) => ({ start: '▶', end: '⏹', llm: '🤖', code: '💻', ifelse: '🔀', http: '🌐', tool: '🔧', knowledge: '📚' }[type] || '📦');
+
+    const workflowNodes = ref([
+      { id: 'n1', type: 'start', x: 60, y: 200, config: { label: '开始' } },
+      { id: 'n2', type: 'llm', x: 320, y: 180, config: { label: 'LLM处理', model: 'deepseek-chat', prompt: '请分析以下内容', temperature: 0.7 } },
+      { id: 'n3', type: 'ifelse', x: 580, y: 200, config: { label: '条件判断', condition: 'output.includes("yes")' } },
+      { id: 'n4', type: 'end', x: 840, y: 200, config: { label: '结束' } },
+    ]);
+    const workflowConnections = ref([
+      { from: 'n1', to: 'n2', animating: false },
+      { from: 'n2', to: 'n3', animating: false },
+      { from: 'n3', to: 'n4', animating: false },
+    ]);
+    const selectedNode = ref(null);
+    const selectNode = (node) => { selectedNode.value = node; };
+    const canvasWrapper = ref(null);
+    const workflowSvg = ref(null);
+
+    // Drag nodes
+    let dragNode = null, dragOffset = { x: 0, y: 0 };
+    const onNodeMouseDown = (e, node) => {
+      dragNode = node;
+      dragOffset.x = e.clientX - node.x;
+      dragOffset.y = e.clientY - node.y;
+      const onMove = (ev) => {
+        if (!dragNode) return;
+        dragNode.x = ev.clientX - dragOffset.x;
+        dragNode.y = ev.clientY - dragOffset.y;
+      };
+      const onUp = () => { dragNode = null; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    };
+
+    // Palette drag
+    let dragType = null;
+    const onPaletteDragStart = (e, type) => { dragType = type; e.dataTransfer.effectAllowed = 'copy'; };
+    const onCanvasDrop = (e) => {
+      if (!dragType || !canvasWrapper.value) return;
+      const rect = canvasWrapper.value.getBoundingClientRect();
+      const node = { id: 'n' + Date.now(), type: dragType, x: e.clientX - rect.left - 90, y: e.clientY - rect.top - 30, config: { label: nodeLabel(dragType) } };
+      if (dragType === 'llm') { node.config.model = 'deepseek-chat'; node.config.prompt = ''; node.config.temperature = 0.7; }
+      if (dragType === 'code') node.config.code = '# 在此编写代码\n';
+      if (dragType === 'ifelse') node.config.condition = '';
+      if (dragType === 'http') { node.config.url = ''; node.config.method = 'GET'; }
+      if (dragType === 'tool') node.config.tool_id = '';
+      if (dragType === 'knowledge') { node.config.kb_id = ''; node.config.top_k = 3; }
+      workflowNodes.value.push(node);
+      dragType = null;
+    };
+    const onCanvasMouseDown = () => { selectedNode.value = null; };
+
+    // Connection drawing
+    const tempConnection = ref(null);
+    const tempConnectionPath = ref('');
+    const connecting = ref(false);
+    const connStart = ref(null);
+
+    const startConnection = (e, node, port) => {
+      if (port === 'out') {
+        connecting.value = true;
+        connStart.value = node;
+        const onMove = (ev) => {
+          const rect = canvasWrapper.value.getBoundingClientRect();
+          const sx = node.x + 180; const sy = node.y + 80;
+          const ex = ev.clientX - rect.left; const ey = ev.clientY - rect.top;
+          const cx = (sx + ex) / 2;
+          tempConnection.value = true;
+          tempConnectionPath.value = `M${sx},${sy} C${cx},${sy} ${cx},${ey} ${ex},${ey}`;
+        };
+        const onUp = (ev) => {
+          connecting.value = false; tempConnection.value = null;
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          // Find target node
+          const target = workflowNodes.value.find(n => {
+            const rx = n.x; const ry = n.y + 60;
+            return Math.abs(ev.clientX - rect.left - rx) < 100 && Math.abs(ev.clientY - rect.top - ry) < 50;
+          });
+          if (target && target.id !== connStart.value.id) {
+            const exists = workflowConnections.value.find(c => c.from === connStart.value.id && c.to === target.id);
+            if (!exists) workflowConnections.value.push({ from: connStart.value.id, to: target.id, animating: false });
+          }
+        };
+        const rect = canvasWrapper.value.getBoundingClientRect();
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      }
+    };
+
+    const getConnectionPath = (conn) => {
+      const fromNode = workflowNodes.value.find(n => n.id === conn.from);
+      const toNode = workflowNodes.value.find(n => n.id === conn.to);
+      if (!fromNode || !toNode) return '';
+      const sx = fromNode.x + 180; const sy = fromNode.y + 70;
+      const ex = toNode.x; const ey = toNode.y + 70;
+      const cx = Math.abs(sx - ex) * 0.5 + Math.min(sx, ex);
+      return `M${sx},${sy} C${cx},${sy} ${cx},${ey} ${ex},${ey}`;
+    };
+
+    const deleteSelectedNode = () => {
+      if (!selectedNode.value) return;
+      const id = selectedNode.value.id;
+      workflowNodes.value = workflowNodes.value.filter(n => n.id !== id);
+      workflowConnections.value = workflowConnections.value.filter(c => c.from !== id && c.to !== id);
+      selectedNode.value = null;
+      showToast('节点已删除');
+    };
+
+    const runWorkflow = () => {
+      workflowConnections.value.forEach(c => c.animating = true);
+      showToast('工作流运行中...');
+      setTimeout(() => { workflowConnections.value.forEach(c => c.animating = false); showToast('工作流运行完成'); }, 3000);
+    };
+    const saveWorkflow = () => showToast('工作流已保存');
+    const exportWorkflow = () => {
+      const data = JSON.stringify({ nodes: workflowNodes.value, connections: workflowConnections.value }, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'workflow.json'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('工作流已导出');
+    };
+
+    // ===== SETTINGS =====
+    const providers = ref([
+      { name: 'DeepSeek', icon: 'DS', color: '#4f6ef7', desc: '深度求索大模型 - 高性价比中文模型', apiKey: localStorage.getItem('ds_key') || '', keyPlaceholder: 'sk-...' },
+      { name: 'Ollama', icon: 'OL', color: '#22a790', desc: '本地部署开源模型 - 无需API费用', apiKey: localStorage.getItem('ollama_url') || 'http://localhost:11434', keyPlaceholder: 'http://localhost:11434' },
+    ]);
+    watch(providers, (v) => { localStorage.setItem('ds_key', v[0].apiKey); localStorage.setItem('ollama_url', v[1].apiKey); }, { deep: true });
+
+    const apiKeys = ref([
+      { id: 1, name: '生产环境密钥', key: 'sk-prod-****-****-abcd' },
+      { id: 2, name: '测试环境密钥', key: 'sk-test-****-****-efgh' },
+    ]);
+    const addApiKey = () => {
+      const name = prompt('输入密钥名称：');
+      if (!name) return;
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let suffix = ''; for (let i = 0; i < 16; i++) suffix += chars[Math.floor(Math.random()*chars.length)];
+      apiKeys.value.push({ id: Date.now(), name, key: 'sk-' + suffix.substring(0,4) + '-****-****-' + suffix.substring(12) });
+      showToast('密钥已生成');
+    };
+    const deleteApiKey = (id) => { apiKeys.value = apiKeys.value.filter(k => k.id !== id); showToast('密钥已删除'); };
+    const copyKey = (key) => { navigator.clipboard?.writeText(key).then(() => showToast('已复制到剪贴板')).catch(() => showToast('复制失败', 'error')); };
+
+    return {
+      themes, currentTheme, showThemeMenu, setTheme,
+      navExpanded, page, appId, navigate,
+      toast, showToast,
+      apps, appFilter, filteredApps, currentApp, typeLabel,
+      showCreateApp, newApp, createApp, deleteApp, openApp, openChat, openWorkflow, saveApp,
+      allTools,
+      knowledgeBases, allKnowledgeBases, selectedKB, selectedDoc, testKB, searchQuery, searchResults,
+      showCreateKB, newKB, createKB, deleteKB, uploadDoc, runSearch,
+      conversations, currentConvId, chatInput, streaming, streamContent, tokenCount, currentTokenCount, chatMessages, debugInfo,
+      currentMessages, createConversation, sendMessage, renderMarkdown, initChat,
+      nodeTypes, nodeColor, nodeLabel, nodeIcon,
+      workflowNodes, workflowConnections, selectedNode, selectNode,
+      canvasWrapper, workflowSvg,
+      onNodeMouseDown, onPaletteDragStart, onCanvasDrop, onCanvasMouseDown,
+      tempConnection, tempConnectionPath, startConnection, getConnectionPath,
+      deleteSelectedNode, runWorkflow, saveWorkflow, exportWorkflow,
+      providers, apiKeys, addApiKey, deleteApiKey, copyKey,
+    };
+  }
+});
+app.mount('#app');
+</script>
+</body>
+</html>
