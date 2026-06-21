@@ -696,9 +696,17 @@ async def web_ui():
     return HTML_PAGE
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8000):
+def run_server(host: str = "0.0.0.0", port: int = None):
     import uvicorn
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    from config import load_config
+    cfg = load_config()
+    _host = host or cfg.get("server", {}).get("host", "0.0.0.0")
+    _port = port or cfg.get("server", {}).get("port", 10002)
+    uvicorn.run(app, host=_host, port=_port, log_level="info")
+
+
+if __name__ == "__main__":
+    run_server()
 
 
 # ==================== 内嵌 HTML（Dify 风格） ====================
