@@ -1,6 +1,7 @@
 """FastAPI Web 服务 — 支持 Dify 风格的应用管理、知识库、工作流、流式 SSE"""
 
 import json
+import os
 import uuid
 import logging
 from datetime import datetime
@@ -37,7 +38,8 @@ knowledge_manager = KnowledgeManager(db)
 workflow_engine = WorkflowEngine(db, router, knowledge_manager, registry)
 
 app = FastAPI(title="Agent LLM 应用平台", version="3.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
+app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"])
 
 
 # ==================== Request/Response Models ====================

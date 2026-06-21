@@ -4,10 +4,56 @@ import inspect
 import json
 import time
 import logging
+import ast
 from typing import Callable, Any
 from models import ToolDefinition, ToolParameter, ToolResult, ParameterType
 
 logger = logging.getLogger(__name__)
+
+
+SAFE_BUILTINS = {
+    'abs': abs, 'all': all, 'any': any, 'bool': bool, 'dict': dict,
+    'enumerate': enumerate, 'filter': filter, 'float': float, 'frozenset': frozenset,
+    'getattr': getattr, 'hasattr': hasattr, 'hash': hash, 'int': int,
+    'isinstance': isinstance, 'issubclass': issubclass, 'iter': iter, 'len': len,
+    'list': list, 'map': map, 'max': max, 'min': min, 'next': next,
+    'object': object, 'print': print, 'property': property, 'range': range,
+    'repr': repr, 'reversed': reversed, 'round': round, 'set': set,
+    'slice': slice, 'sorted': sorted, 'str': str, 'sum': sum,
+    'tuple': tuple, 'type': type, 'zip': zip, 'True': True, 'False': False, 'None': None,
+}
+
+
+def safe_exec(code: str, context: dict = None) -> dict:
+    """Safe exec: no imports, no dunder access, no dangerous builtins"""
+    dangerous = ['import', '__import__', 'eval(', 'exec(', 'compile(', 'open(',
+                 'os.', 'sys.', 'subprocess', 'shutil', 'pathlib', '__builtins__',
+                 '__globals__', '__locals__', 'getattr(', 'setattr(', 'delattr(']
+    for d in dangerous:
+        if d in code:
+            raise ValueError(f"Blocked dangerous pattern: {d}")
+    tree = ast.parse(code)
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            raise ValueError("Import statements not allowed")
+    sandbox = {'__builtins__': SAFE_BUILTINS}
+    if context:
+        sandbox.update(context)
+    exec(compile(tree, '<sandbox>', 'exec'), sandbox)
+    return {k: v for k, v in sandbox.items() if not k.startswith('_')}
+
+
+def safe_eval(expr: str, context: dict = None) -> any:
+    """Safe eval: no imports, no dunder access"""
+    dangerous = ['import', '__import__', 'eval(', 'exec(', 'compile(', 'open(',
+                 'os.', 'sys.', 'subprocess', '__builtins__', '__globals__']
+    for d in dangerous:
+        if d in expr:
+            raise ValueError(f"Blocked dangerous pattern: {d}")
+    sandbox = {'__builtins__': SAFE_BUILTINS}
+    if context:
+        sandbox.update(context)
+    return eval(expr, sandbox)
 
 
 class ToolRegistry:
@@ -191,7 +237,7 @@ def calculate(expression: str) -> str:
         "pi": math.pi, "e": math.e,
     }
     try:
-        result = eval(expression, {"__builtins__": {}}, allowed)
+        result = safe_eval(expression, allowed)
         return str(result)
     except Exception as e:
         return f"计算错误: {e}"
@@ -284,19 +330,10 @@ def python_execute(code: str) -> str:
     import io
     import contextlib
 
-    safe_builtins = {
-        "print": print, "len": len, "str": str, "int": int, "float": float,
-        "bool": bool, "list": list, "dict": dict, "tuple": tuple, "set": set,
-        "range": range, "enumerate": enumerate, "zip": zip, "map": map,
-        "filter": filter, "sorted": sorted, "reversed": reversed,
-        "isinstance": isinstance, "hasattr": hasattr, "getattr": getattr,
-        "abs": abs, "round": round, "min": min, "max": max, "sum": sum,
-    }
-
     stdout = io.StringIO()
     try:
         with contextlib.redirect_stdout(stdout):
-            exec(code, {"__builtins__": safe_builtins})
+            safe_exec(code)
         output = stdout.getvalue()
         return output if output else "代码执行完成（无输出）"
     except Exception as e:

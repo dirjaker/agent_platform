@@ -7,6 +7,7 @@ FastAPI 服务，提供 Agent 平台管理的 REST API
 """
 
 import sys
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -26,9 +27,10 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # ============================================================
 
 app = FastAPI(title="Agent 平台管理面板", version="1.0.0")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
