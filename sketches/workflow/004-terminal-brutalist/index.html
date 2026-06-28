@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Workflow - Terminal Brutalist</title><style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Courier New",monospace;color:#00ff41;background:#0a0a0a;overflow:hidden;height:100vh;font-size:13px}
+#app{display:flex;height:100vh}
+.sidebar{width:56px;background:#0d0d0d;border-right:2px solid #1a1a1a;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px}
+.sidebar .si{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:#00ff41;border:1px solid transparent;opacity:0.6}
+.sidebar .si:hover{opacity:1;border-color:#00ff41}
+.sidebar .si.on{opacity:1;background:rgba(0,255,65,0.08);border-color:#00ff41}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:40px;display:flex;align-items:center;padding:0 16px;border-bottom:2px solid #1a1a1a;gap:12px}
+.topbar .path{color:#00ff41;font-size:12px}
+.topbar .path span{opacity:0.4}
+.topbar .r{margin-left:auto;display:flex;gap:8px}
+.btn{padding:4px 14px;border:1px solid #00ff41;background:transparent;color:#00ff41;cursor:pointer;font-size:11px;font-family:inherit;text-transform:uppercase}
+.btn:hover{background:rgba(0,255,65,0.1)}
+.btn.go{background:#00ff41;color:#0a0a0a;font-weight:bold}
+.canvas{flex:1;position:relative;overflow:hidden;background:#0a0a0a}
+.palette{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:4px;z-index:10}
+.palette .pi{width:32px;height:32px;border:1px solid #1a1a1a;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:grab;color:#00ff41;opacity:0.5;background:#0d0d0d}
+.palette .pi:hover{opacity:1;border-color:#00ff41}
+.node{position:absolute;background:#0d0d0d;border:1px solid #1a1a1a;width:220px;cursor:pointer}
+.node:hover{border-color:#00ff41}
+.node.sel{border-color:#00ff41;box-shadow:0 0 0 1px #00ff41}
+.node .in{padding:12px 14px 8px}
+.node .tag{font-size:9px;color:#00ff41;opacity:0.4;text-transform:uppercase;margin-bottom:4px}
+.node .t{font-size:13px;font-weight:bold;color:#00ff41;margin-bottom:2px}
+.node .s{font-size:10px;color:#00ff41;opacity:0.5}
+.node .p{display:flex;justify-content:space-between;padding:0 14px 10px}
+.node .p .dot{width:6px;height:6px;border:1px solid #1a1a1a;border-radius:0}
+.node .p .dot:hover{border-color:#00ff41;background:#00ff41}
+.cfg{position:absolute;right:12px;top:12px;bottom:12px;width:260px;background:#0d0d0d;border:1px solid #1a1a1a;display:flex;flex-direction:column;z-index:10}
+.cfg h3{padding:12px 14px;border-bottom:1px solid #1a1a1a;font-size:12px;text-transform:uppercase;letter-spacing:0.1em}
+.cfg .b{flex:1;overflow-y:auto;padding:14px}
+.cfg .f{margin-bottom:16px}
+.cfg label{display:block;font-size:9px;color:#00ff41;opacity:0.4;margin-bottom:4px;text-transform:uppercase}
+.cfg input,.cfg select{width:100%;padding:6px 8px;border:1px solid #1a1a1a;background:#0a0a0a;color:#00ff41;font-family:inherit;font-size:11px;outline:none}
+.cfg input:focus,.cfg select:focus{border-color:#00ff41}
+.cfg select{appearance:none}
+svg.c{position:absolute;inset:0;pointer-events:none}
+svg.c path{fill:none;stroke:#1a1a1a;stroke-width:2}
+.help{position:absolute;bottom:12px;left:12px;font-size:10px;opacity:0.2;z-index:5}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#1a1a1a}
+</style></head><body>
+<div id="app">
+<div class="sidebar">
+  <div class="si on">⌘</div><div class="si">▶</div><div class="si">◉</div><div class="si">☰</div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div class="path">workflow <span>/</span> customer_service_bot</div>
+    <div class="r"><button class="btn">save</button><button class="btn go">run</button></div>
+  </div>
+  <div class="canvas">
+    <svg class="c"><path d="M310,350 C390,350 430,460 510,460"/><path d="M730,460 C810,460 850,250 930,250"/><path d="M730,460 C810,460 850,670 930,670"/><path d="M1150,250 C1230,250 1260,380 1320,380"/><path d="M1150,670 C1230,670 1260,530 1320,530"/></svg>
+    <div class="palette">
+      <div class="pi">▶</div><div class="pi">🧠</div><div class="pi">{ }</div><div class="pi">↗</div><div class="pi">⇆</div><div class="pi">↻</div><div class="pi">⚙</div>
+    </div>
+    <div class="node" style="left:90px;top:320px"><div class="in"><div class="tag">[ start ]</div><div class="t">> receive_query</div><div class="s">input: user message</div></div><div class="p"><span></span><span class="dot"></span></div></div>
+    <div class="node" style="left:510px;top:430px"><div class="in"><div class="tag">[ llm ]</div><div class="t">> intent_recognition</div><div class="s">model: deepseek-v3</div></div><div class="p"><span class="dot"></span><span class="dot"></span></div></div>
+    <div class="node sel" style="left:930px;top:220px"><div class="in"><div class="tag">[ if/else ]</div><div class="t">> intent_router</div><div class="s">intent == "order"</div></div><div class="p"><span class="dot"></span><span class="dot" style="margin-right:8px"></span><span class="dot"></span></div></div>
+    <div class="node" style="left:1320px;top:190px"><div class="in"><div class="tag">[ http ]</div><div class="t">> fetch_order</div><div class="s">GET /api/orders/:id</div></div><div class="p"><span class="dot"></span><span></span></div></div>
+    <div class="node" style="left:1320px;top:500px"><div class="in"><div class="tag">[ answer ]</div><div class="t">> transfer_human</div><div class="s">output: agent response</div></div><div class="p"><span class="dot"></span><span></span></div></div>
+    <div class="cfg"><h3>> intent_router</h3><div class="b">
+      <div class="f"><label>name</label><input value="intent_router"></div>
+      <div class="f"><label>variable</label><select><option>{{intent}}</option></select></div>
+      <div class="f"><label>condition</label><input value="=='order'"></div>
+      <div class="f"><label>true_branch</label><input value="fetch_order"></div>
+      <div class="f"><label>false_branch</label><input value="transfer_human"></div>
+    </div></div>
+    <div class="help">ctrl+s save | ctrl+z undo | del delete | space+click pan</div>
+  </div>
+</div></div></body></html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Platform - Clean Professional</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;color:#1a1a2e;background:#f5f5f7;line-height:1.5;overflow:hidden;height:100vh}
+#app{display:flex;height:100vh}
+/* Sidebar */
+.sidebar{width:240px;background:#1c1c1e;color:#e5e5ea;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 20px 12px;font-size:18px;font-weight:700;letter-spacing:-0.3px;color:#fff;display:flex;align-items:center;gap:8px}
+.sidebar-logo .dot{width:20px;height:20px;background:#6366f1;border-radius:5px}
+.sidebar-nav{flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.nav-item{padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13.5px;color:#98989d;transition:all 0.15s;display:flex;align-items:center;gap:10px;user-select:none}
+.nav-item:hover{background:#2c2c2e;color:#d1d1d6}
+.nav-item.active{background:#6366f1;color:#fff}
+.nav-item .icon{width:16px;height:16px;opacity:0.7;font-size:14px}
+.nav-section{margin-top:12px;padding:0 12px 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#636366;font-weight:600}
+.sidebar-footer{padding:12px;border-top:1px solid #2c2c2e;font-size:12px;color:#636366}
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{height:52px;border-bottom:1px solid #e5e5ea;display:flex;align-items:center;padding:0 24px;background:#fff;flex-shrink:0}
+.main-header h2{font-size:15px;font-weight:600;color:#1a1a2e}
+.main-header .actions{margin-left:auto;display:flex;gap:8px}
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.15s}
+.btn-primary{background:#6366f1;color:#fff}.btn-primary:hover{background:#4f46e5}
+.btn-ghost{background:transparent;color:#6b7280}.btn-ghost:hover{background:#f3f4f6}
+/* Content area */
+.content{flex:1;display:flex;overflow:hidden}
+/* App grid */
+.app-list{flex:1;padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:24px}
+.section-title{font-size:13px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px}
+.app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.app-card{background:#fff;border:1px solid #e5e5ea;border-radius:10px;padding:18px;cursor:pointer;transition:all 0.2s;position:relative}
+.app-card:hover{border-color:#c7c7cc;box-shadow:0 2px 12px rgba(0,0,0,0.06);transform:translateY(-1px)}
+.app-card.selected{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,0.15)}
+.app-card .name{font-size:15px;font-weight:600;margin-bottom:4px;color:#1a1a2e}
+.app-card .desc{font-size:12.5px;color:#8e8e93;line-height:1.4;margin-bottom:12px}
+.app-card .meta{display:flex;gap:16px;font-size:11px;color:#aeaeb2}
+.app-card .badge{padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:500}
+.badge-chat{background:#ede9fe;color:#7c3aed}
+.badge-workflow{background:#fce7f3;color:#db2777}
+/* Chat panel */
+.chat-panel{width:420px;border-left:1px solid #e5e5ea;background:#fff;display:flex;flex-direction:column;flex-shrink:0}
+.chat-header{padding:14px 18px;border-bottom:1px solid #e5e5ea;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.chat-header .status{width:7px;height:7px;background:#22c55e;border-radius:50%}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;max-width:90%}
+.msg.user{align-self:flex-end;background:#6366f1;color:#fff;border-bottom-right-radius:4px}
+.msg.assistant{align-self:flex-start;background:#f3f4f6;color:#1a1a2e;border-bottom-left-radius:4px}
+.msg.assistant .label{font-size:10px;color:#9ca3af;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.04em}
+.chat-input{margin:12px;padding:10px 14px;border:1px solid #e5e5ea;border-radius:10px;font-size:13px;outline:none;resize:none;font-family:inherit;min-height:40px}
+.chat-input:focus{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,0.1)}
+/* Quick stats */
+.stats-bar{display:flex;gap:16px;margin-bottom:16px}
+.stat-card{flex:1;background:#fff;border:1px solid #e5e5ea;border-radius:10px;padding:14px 16px}
+.stat-card .val{font-size:22px;font-weight:700;color:#1a1a2e;letter-spacing:-0.5px}
+.stat-card .lbl{font-size:11px;color:#8e8e93;margin-top:2px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#d1d1d6;border-radius:10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo"><div class="dot"></div>AgentForge</div>
+    <div class="sidebar-nav">
+      <div class="nav-item active"><span class="icon">⊞</span>应用</div>
+      <div class="nav-item"><span class="icon">📚</span>知识库</div>
+      <div class="nav-item"><span class="icon">🔧</span>工具</div>
+      <div class="nav-item"><span class="icon">⚙️</span>工作流</div>
+      <div class="nav-item"><span class="icon">📊</span>监控</div>
+      <div class="nav-section">配置</div>
+      <div class="nav-item"><span class="icon">🔑</span>模型管理</div>
+      <div class="nav-item"><span class="icon">👤</span>API 密钥</div>
+      <div class="nav-item"><span class="icon">⚡</span>设置</div>
+    </div>
+    <div class="sidebar-footer">v1.0.0 · dirjaker</div>
+  </div>
+  <div class="main">
+    <div class="main-header">
+      <h2>应用管理</h2>
+      <div class="actions">
+        <button class="btn btn-ghost">导入</button>
+        <button class="btn btn-primary">+ 新建应用</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="app-list">
+        <div class="stats-bar">
+          <div class="stat-card"><div class="val">12</div><div class="lbl">应用总数</div></div>
+          <div class="stat-card"><div class="val">1.2k</div><div class="lbl">今日调用</div></div>
+          <div class="stat-card"><div class="val">98.7%</div><div class="lbl">成功率</div></div>
+          <div class="stat-card"><div class="val">¥23.5</div><div class="lbl">今日花费</div></div>
+        </div>
+        <div class="section-title">我的应用</div>
+        <div class="app-grid">
+          <div class="app-card selected" onclick="document.querySelector('.chat-panel').style.display='flex'">
+            <div class="name">智能客服助手</div>
+            <div class="desc">基于公司知识库的智能客服，支持多轮对话和工单自动创建</div>
+            <div class="meta">
+              <span class="badge badge-chat">Chat</span>
+              <span>1.2k 次调用</span>
+              <span>99.2% 可用</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="name">代码审查助手</div>
+            <div class="desc">自动审查 PR，检测安全漏洞和代码规范问题</div>
+            <div class="meta">
+              <span class="badge badge-workflow">Workflow</span>
+              <span>456 次调用</span>
+              <span>97.8% 可用</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="name">文档摘要引擎</div>
+            <div class="desc">上传 PDF/Word，自动生成结构化摘要和关键信息提取</div>
+            <div class="meta">
+              <span class="badge badge-chat">Chat</span>
+              <span>3.4k 次调用</span>
+              <span>99.5% 可用</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="name">SQL 生成器</div>
+            <div class="desc">自然语言转 SQL，支持 MySQL/PostgreSQL/ClickHouse</div>
+            <div class="meta">
+              <span class="badge badge-chat">Chat</span>
+              <span>892 次调用</span>
+              <span>96.1% 可用</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="name">数据清洗流水线</div>
+            <div class="desc">自动化数据 ETL 流程，异常值检测 + 格式标准化</div>
+            <div class="meta">
+              <span class="badge badge-workflow">Workflow</span>
+              <span>234 次调用</span>
+              <span>100% 可用</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="name">竞品分析报告</div>
+            <div class="desc">输入竞品名称，自动抓取信息并生成分析报告</div>
+            <div class="meta">
+              <span class="badge badge-workflow">Workflow</span>
+              <span>567 次调用</span>
+              <span>98.3% 可用</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-panel">
+        <div class="chat-header"><span class="status"></span> 智能客服助手</div>
+        <div class="chat-messages">
+          <div class="msg user">我的订单什么时候到？</div>
+          <div class="msg assistant">
+            <div class="label">Agent · 推理</div>
+            正在查询订单 #ORD-20240615-003...<br>
+            物流状态：已发货<br>
+            预计送达：6月18日
+          </div>
+          <div class="msg user">能帮我改地址吗？</div>
+          <div class="msg assistant">
+            <div class="label">Agent · 执行</div>
+            已为您提交地址变更请求，新地址将在下次配送生效。
+          </div>
+        </div>
+        <textarea class="chat-input" placeholder="输入消息..." rows="1"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

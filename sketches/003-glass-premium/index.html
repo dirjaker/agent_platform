@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Platform - Glass Premium</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;color:#f1f5f9;background:radial-gradient(ellipse at 20% 50%,#1e1b4b 0%,#0f0d1a 60%,#0a0a14 100%);min-height:100vh;line-height:1.5}
+/* Nav */
+nav{position:sticky;top:0;z-index:100;background:rgba(15,13,26,0.65);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(139,92,246,0.12);padding:0 32px;height:56px;display:flex;align-items:center;gap:24px}
+nav .logo{font-weight:800;font-size:16px;letter-spacing:-0.3px;background:linear-gradient(135deg,#a78bfa,#818cf8,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}nav .nav-links{display:flex;gap:4px;margin-left:auto}
+nav .nav-link{padding:6px 14px;border-radius:8px;font-size:13px;color:#94a3b8;cursor:pointer;transition:all 0.2s;text-decoration:none;font-weight:500}
+nav .nav-link:hover{color:#e2e8f0;background:rgba(139,92,246,0.08)}
+nav .nav-link.active{color:#a78bfa;background:rgba(139,92,246,0.12)}
+nav .profile{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#6366f1);margin-left:12px}
+/* Page */
+.page{padding:32px;max-width:1400px;margin:0 auto}
+.page-title{font-size:24px;font-weight:700;margin-bottom:4px;letter-spacing:-0.5px}
+.page-sub{font-size:13px;color:#64748b;margin-bottom:28px}
+/* Stats */
+.stats{display:flex;gap:16px;margin-bottom:28px}
+.stat-card{flex:1;padding:20px 24px;border-radius:16px;background:rgba(30,27,75,0.4);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(139,92,246,0.12);transition:all 0.3s}
+.stat-card:hover{transform:translateY(-2px);border-color:rgba(139,92,246,0.25);box-shadow:0 8px 32px rgba(139,92,246,0.08)}
+.stat-card .val{font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.stat-card .val.purple{background:linear-gradient(135deg,#a78bfa,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .val.green{color:#34d399}
+.stat-card .val.blue{color:#60a5fa}
+.stat-card .val.amber{color:#fbbf24}
+.stat-card .lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+/* App grid */
+.app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.app-card{padding:22px;border-radius:16px;background:rgba(30,27,75,0.3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(139,92,246,0.08);cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
+.app-card::before{content:'';position:absolute;top:-50%;right:-50%;width:200px;height:200px;background:radial-gradient(circle,rgba(139,92,246,0.06),transparent 70%);pointer-events:none;transition:opacity 0.3s;opacity:0}
+.app-card:hover::before{opacity:1}
+.app-card:hover{transform:translateY(-3px);border-color:rgba(139,92,246,0.2);box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+.app-card .top-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.app-card .icon{width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;font-size:16px}
+.app-card .name{font-size:15px;font-weight:600;color:#f1f5f9;letter-spacing:-0.2px}
+.app-card .badge{font-size:10px;padding:2px 10px;border-radius:20px;font-weight:600;margin-left:auto}
+.badge-chat{background:rgba(139,92,246,0.15);color:#a78bfa}
+.badge-workflow{background:rgba(52,211,153,0.12);color:#34d399}
+.app-card .desc{font-size:12px;color:#94a3b8;line-height:1.5;margin-bottom:14px}
+.app-card .footer-row{display:flex;gap:16px;font-size:11px;color:#64748b}
+.app-card .footer-row span{display:flex;align-items:center;gap:4px}
+.app-card .footer-row .val{color:#94a3b8;font-weight:500}
+.app-card .play-btn{position:absolute;bottom:22px;right:22px;width:32px;height:32px;border-radius:50%;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#a78bfa;transition:all 0.2s}
+.app-card:hover .play-btn{background:#a78bfa;color:#0f0d1a}
+/* Modal (glass) */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{width:700px;max-height:80vh;background:rgba(30,27,75,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(139,92,246,0.15);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5)}
+.modal-header{padding:18px 24px;border-bottom:1px solid rgba(139,92,246,0.08);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.modal-input{width:100%;min-height:80px;padding:12px 16px;border-radius:12px;background:rgba(15,13,26,0.5);border:1px solid rgba(139,92,246,0.12);color:#f1f5f9;font-family:inherit;font-size:13px;resize:none;outline:none}
+.modal-input:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(139,92,246,0.1)}
+.msg{max-width:85%;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.5}
+.msg.user{align-self:flex-end;background:rgba(139,92,246,0.25);border:1px solid rgba(139,92,246,0.2);border-bottom-right-radius:4px;color:#f1f5f9}
+.msg.assistant{align-self:flex-start;background:rgba(30,41,59,0.6);border:1px solid rgba(100,116,139,0.1);border-bottom-left-radius:4px;color:#e2e8f0}
+.msg.assistant .step{font-size:10px;color:#818cf8;margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.2);border-radius:4px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Lumina AI</div>
+  <a class="nav-link active">应用</a>
+  <a class="nav-link">知识库</a>
+  <a class="nav-link">工具</a>
+  <a class="nav-link">工作流</a>
+  <a class="nav-link">监控</a>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <a class="nav-link">设置</a>
+    <div class="profile"></div>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-title">应用管理</div>
+  <div class="page-sub">创建和管理你的 AI 应用，从聊天助手到自动化工作流</div>
+  <div class="stats">
+    <div class="stat-card"><div class="val purple">12</div><div class="lbl">活跃应用</div></div>
+    <div class="stat-card"><div class="val green">99.7%</div><div class="lbl">整体可用率</div></div>
+    <div class="stat-card"><div class="val blue">1.2k</div><div class="lbl">今日请求</div></div>
+    <div class="stat-card"><div class="val amber">¥23.5</div><div class="lbl">今日花费</div></div>
+  </div>
+  <div class="app-grid">
+    <div class="app-card" onclick="document.querySelector('.modal-overlay').classList.add('show')">
+      <div class="top-row"><div class="icon">💬</div><div class="name">智能客服助手</div><span class="badge badge-chat">Chat</span></div>
+      <div class="desc">基于企业知识库的智能客服，支持多轮对话、意图识别和自动工单创建</div>
+      <div class="footer-row">
+        <span>📊 <span class="val">1.2k</span> 次调用</span>
+        <span>⏱ <span class="val">234ms</span> 平均</span>
+        <span>✅ <span class="val">99.2%</span> 可用</span>
+      </div>
+      <div class="play-btn">▶</div>
+    </div>
+    <div class="app-card">
+      <div class="top-row"><div class="icon">🔍</div><div class="name">代码审查助手</div><span class="badge badge-workflow">Workflow</span></div>
+      <div class="desc">自动审查 Pull Request，检测安全漏洞、代码异味和规范问题</div>
+      <div class="footer-row">
+        <span>📊 <span class="val">456</span> 次调用</span>
+        <span>⏱ <span class="val">1.2s</span> 平均</span>
+        <span>✅ <span class="val">97.8%</span> 可用</span>
+      </div>
+      <div class="play-btn">▶</div>
+    </div>
+    <div class="app-card">
+      <div class="top-row"><div class="icon">📄</div><div class="name">文档摘要引擎</div><span class="badge badge-chat">Chat</span></div>
+      <div class="desc">上传 PDF/Word，自动提取关键信息并生成结构化摘要报告</div>
+      <div class="footer-row">
+        <span>📊 <span class="val">3.4k</span> 次调用</span>
+        <span>⏱ <span class="val">567ms</span> 平均</span>
+        <span>✅ <span class="val">99.5%</span> 可用</span>
+      </div>
+      <div class="play-btn">▶</div>
+    </div>
+    <div class="app-card">
+      <div class="top-row"><div class="icon">🗄</div><div class="name">SQL 生成器</div><span class="badge badge-chat">Chat</span></div>
+      <div class="desc">自然语言转 SQL，支持 MySQL / PostgreSQL / ClickHouse 多引擎</div>
+      <div class="footer-row">
+        <span>📊 <span class="val">892</span> 次调用</span>
+        <span>⏱ <span class="val">890ms</span> 平均</span>
+        <span>✅ <span class="val">96.1%</span> 可用</span>
+      </div>
+      <div class="play-btn">▶</div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal">
+    <div class="modal-header">💬 智能客服助手</div>
+    <div class="modal-body">
+      <div class="msg user">我的订单什么时候到？</div>
+      <div class="msg assistant">
+        <div class="step">Agent · 推理中</div>
+        正在查询订单 #ORD-20240615-003...<br>
+        物流状态：已发货 · 预计送达：6月18日
+      </div>
+      <div class="msg user">可以帮我改地址吗？</div>
+      <div class="msg assistant">
+        <div class="step">Agent · 执行中</div>
+        已为您提交地址变更请求。<br>
+        新地址将在下次配送时生效。
+      </div>
+    </div>
+    <textarea class="modal-input" placeholder="输入消息..." rows="2" style="margin:0 24px 20px"></textarea>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Workflow - Notion Editorial</title><style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;color:#1a1a1a;background:#faf9f6;overflow:hidden;height:100vh}
+#app{display:flex;height:100vh}
+.sidebar{width:200px;background:#f5f0e8;border-right:1px solid #e8e0d5;padding:20px 0}
+.sidebar .logo{padding:0 20px 16px;font-size:20px;font-weight:700;color:#2c2c2c}
+.sidebar .nav a{display:block;padding:8px 20px;font-size:14px;color:#6b6b6b;text-decoration:none}
+.sidebar .nav a:hover{background:#ede6d9;color:#2c2c2c}
+.sidebar .nav a.active{background:#2c2c2c;color:#faf9f6}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;padding:0 32px;display:flex;align-items:center;border-bottom:1px solid #e8e0d5;gap:16px}
+.topbar h1{font-size:18px;font-weight:400;color:#2c2c2c}
+.btn{padding:7px 18px;border:1px solid #d4cdc0;background:transparent;cursor:pointer;font-size:12px;color:#6b6b6b;font-family:inherit;border-radius:4px}
+.btn:hover{background:#f0ebe0}
+.btn.ok{background:#2c2c2c;color:#faf9f6;border-color:#2c2c2c}
+.canvas{flex:1;position:relative;overflow:hidden;background:#faf9f6}
+.palette{position:absolute;left:16px;top:16px;width:48px;background:#fff;border:1px solid #e8e0d5;border-radius:6px;display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:2px;z-index:10}
+.palette .pi{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:grab;color:#8b8b8b;border-radius:4px}
+.palette .pi:hover{background:#f5f0e8;color:#2c2c2c}
+.node{position:absolute;background:#fff;border:1px solid #e8e0d5;border-radius:4px;width:200px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.node.sel{border-color:#2c2c2c;box-shadow:0 0 0 1px #2c2c2c}
+.node .in{padding:16px 16px 12px}
+.node .tag{font-size:10px;color:#aaa;text-transform:uppercase;margin-bottom:4px}
+.node .t{font-size:14px;font-weight:600;color:#2c2c2c;margin-bottom:2px}
+.node .s{font-size:11px;color:#8b8b8b}
+.node .p{display:flex;justify-content:space-between;padding:0 16px 12px}
+.port{width:8px;height:8px;border:2px solid #d4cdc0;border-radius:50%;background:#fff;cursor:crosshair}
+.port:hover{border-color:#2c2c2c;background:#2c2c2c}
+.cfg{position:absolute;right:16px;top:16px;bottom:16px;width:260px;background:#fff;border:1px solid #e8e0d5;border-radius:6px;display:flex;flex-direction:column;z-index:10}
+.cfg h3{padding:16px;border-bottom:1px solid #e8e0d5;font-size:14px;font-weight:600;color:#2c2c2c}
+.cfg .b{flex:1;overflow-y:auto;padding:16px}
+.cfg .f{margin-bottom:14px}
+.cfg label{display:block;font-size:10px;color:#aaa;margin-bottom:4px;text-transform:uppercase}
+.cfg input,.cfg select{width:100%;padding:8px 10px;border:1px solid #e8e0d5;border-radius:4px;font-size:13px;font-family:inherit;background:#faf9f6;outline:none;color:#2c2c2c}
+.cfg input:focus{border-color:#2c2c2c;background:#fff}
+svg.c{position:absolute;inset:0;pointer-events:none}
+svg.c path{fill:none;stroke:#d4cdc0;stroke-width:2}
+</style></head><body>
+<div id="app">
+<div class="sidebar">
+  <div class="logo">Workflow</div>
+  <div class="nav">
+    <a class="active">Editor</a><a>Runs</a><a>Variables</a><a>Logs</a>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <h1>Customer Service Bot</h1>
+    <span style="font-size:12px;color:#aaa;margin-left:auto;margin-right:8px">3 min ago</span>
+    <button class="btn">Save</button><button class="btn ok">Publish</button>
+  </div>
+  <div class="canvas">
+    <svg class="c"><path d="M310,350 C390,350 430,460 510,460"/><path d="M710,460 C790,460 830,250 910,250"/><path d="M710,460 C790,460 830,670 910,670"/><path d="M1110,250 C1190,250 1210,380 1280,380"/><path d="M1110,670 C1190,670 1210,530 1280,530"/></svg>
+    <div class="palette"><div class="pi">▶</div><div class="pi">🧠</div><div class="pi">⟨⟩</div><div class="pi">↗</div><div class="pi">⇆</div><div class="pi">↻</div><div class="pi">⚙</div><div class="pi">■</div></div>
+    <div class="node" style="left:110px;top:320px"><div class="in"><div class="tag">Trigger</div><div class="t">Start</div><div class="s">Receive user query</div></div><div class="p"><span></span><span class="port"></span></div></div>
+    <div class="node" style="left:510px;top:430px"><div class="in"><div class="tag">AI</div><div class="t">Intent Recognition</div><div class="s">DeepSeek-V3</div></div><div class="p"><span class="port"></span><span class="port"></span></div></div>
+    <div class="node sel" style="left:910px;top:220px"><div class="in"><div class="tag">Logic</div><div class="t">If / Else</div><div class="s">intent == "order"</div></div><div class="p"><span class="port"></span><span class="port"></span><span class="port"></span></div></div>
+    <div class="node" style="left:1280px;top:190px"><div class="in"><div class="tag">API</div><div class="t">HTTP Request</div><div class="s">GET /api/orders/:id</div></div><div class="p"><span class="port"></span><span></span></div></div>
+    <div class="node" style="left:1280px;top:500px"><div class="in"><div class="tag">Output</div><div class="t">Answer</div><div class="s">Transfer to human</div></div><div class="p"><span class="port"></span><span></span></div></div>
+    <div class="cfg"><h3>If / Else</h3><div class="b">
+      <div class="f"><label>Name</label><input value="Intent Router"></div>
+      <div class="f"><label>Condition</label><select><option>{{intent}}</option></select></div>
+      <div class="f"><label>Expression</label><input value="=='order'"></div>
+      <div class="f"><label>True Branch</label><input value="Query Order API"></div>
+      <div class="f"><label>False Branch</label><input value="Transfer to Human"></div>
+    </div></div>
+  </div>
+</div></div></body></html>

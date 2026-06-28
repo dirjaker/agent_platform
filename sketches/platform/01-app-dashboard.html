@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Agent Platform - Dify Style</title><style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1a1b2e;background:#f5f6fa;-webkit-font-smoothing:antialiased;height:100vh;display:flex;flex-direction:column}
+/* Top Nav */
+nav{height:56px;background:#fff;border-bottom:1px solid #e2e4ea;display:flex;align-items:center;padding:0 20px;gap:32px;flex-shrink:0}
+nav .logo{font-size:16px;font-weight:700;color:#1a1b2e;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px}
+nav .logo .mark{width:22px;height:22px;background:#6366f1;border-radius:6px}
+nav a{font-size:13px;color:#6b6d80;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s}
+nav a:hover{color:#1a1b2e;background:#f5f6fa}
+nav a.active{color:#6366f1;background:rgba(99,102,241,0.08);font-weight:500}
+nav .r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{padding:7px 18px;border-radius:6px;border:none;font-size:13px;cursor:pointer;font-weight:500;font-family:inherit;transition:all 0.15s}
+.btn-pri{background:#6366f1;color:#fff}.btn-pri:hover{background:#4f46e5}
+.btn-gh{background:transparent;color:#6b6d80}.btn-gh:hover{background:#f5f6fa}
+.avatar{width:32px;height:32px;border-radius:50%;background:#e2e4ea;margin-left:8px}
+/* Main */
+main{flex:1;overflow-y:auto;padding:28px 32px;max-width:1400px;margin:0 auto;width:100%}
+main h1{font-size:22px;font-weight:700;margin-bottom:4px;letter-spacing:-0.3px}
+main .sub{font-size:13px;color:#9499b3;margin-bottom:24px}
+/* Stats */
+.stats{display:flex;gap:12px;margin-bottom:28px}
+.stat{flex:1;background:#fff;border:1px solid #e2e4ea;border-radius:10px;padding:18px 20px;display:flex;align-items:center;gap:14px}
+.stat .sicon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sicon-p{background:#ede9fe;color:#7c3aed}
+.sicon-g{background:#d1fae5;color:#059669}
+.sicon-b{background:#dbeafe;color:#2563eb}
+.sicon-o{background:#fef3c7;color:#d97706}
+.stat .sv{font-size:24px;font-weight:700;letter-spacing:-0.5px}
+.stat .sl{font-size:11px;color:#9499b3;margin-top:2px}
+/* Section */
+.sec-title{font-size:13px;font-weight:600;color:#9499b3;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:#e2e4ea}
+/* App grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:32px}
+.card{background:#fff;border:1px solid #e2e4ea;border-radius:10px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.card:hover{border-color:#c7c7cc;box-shadow:0 2px 12px rgba(0,0,0,0.05);transform:translateY(-1px)}
+.card .top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.card .icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.card .info{flex:1;min-width:0}
+.card .name{font-size:14px;font-weight:600;color:#1a1b2e;margin-bottom:2px}
+.card .desc{font-size:12px;color:#9499b3;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .meta{display:flex;gap:14px;font-size:11px;color:#a0a3b5}
+.card .tag{font-size:10px;padding:2px 10px;border-radius:10px;font-weight:500}
+.tag-chat{background:#ede9fe;color:#7c3aed}
+.tag-flow{background:#d1fae5;color:#059669}
+.tag-agent{background:#fef3c7;color:#d97706}
+/* Create card */
+.card.create{border:2px dashed #e2e4ea;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:160px;background:transparent}
+.card.create:hover{background:#fff;border-color:#6366f1}
+.card.create .plus{width:44px;height:44px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:22px;color:#6366f1}
+.card.create .ct{font-size:13px;color:#6b6d80;font-weight:500}
+/* KB section */
+.kb-list{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
+.kb-row{background:#fff;border:1px solid #e2e4ea;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s}
+.kb-row:hover{border-color:#c7c7cc;box-shadow:0 1px 8px rgba(0,0,0,0.03)}
+.kb-row .kbicon{font-size:20px}
+.kb-row .kbinfo{flex:1}
+.kb-row .kbname{font-size:13px;font-weight:600;color:#1a1b2e}
+.kb-row .kbmeta{font-size:11px;color:#a0a3b5;display:flex;gap:16px}
+.kb-row .kbr{font-size:11px;color:#6366f1;font-weight:500}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d1d1d6;border-radius:4px}
+</style></head><body>
+<nav>
+  <div class="logo"><div class="mark"></div>Agent Platform</div>
+  <a class="active">应用</a>
+  <a>知识库</a>
+  <a>工作流</a>
+  <a>ChatFlow</a>
+  <a>模型管理</a>
+  <div class="r">
+    <button class="btn btn-gh">文档</button>
+    <div class="avatar"></div>
+  </div>
+</nav>
+<main>
+  <h1>应用管理</h1>
+  <div class="sub">创建和管理你的 AI 应用，支持聊天助手、工作流和 Agent 三种类型</div>
+  <div class="stats">
+    <div class="stat"><div class="sicon sicon-p">⊞</div><div><div class="sv">8</div><div class="sl">应用总数</div></div></div>
+    <div class="stat"><div class="sicon sicon-g">✓</div><div><div class="sv">6</div><div class="sl">运行中</div></div></div>
+    <div class="stat"><div class="sicon sicon-b">⚡</div><div><div class="sv">2.4k</div><div class="sl">今日请求</div></div></div>
+    <div class="stat"><div class="sicon sicon-o">¥</div><div><div class="sv">18.6</div><div class="sl">今日花费</div></div></div>
+  </div>
+  <div class="sec-title">我的应用</div>
+  <div class="grid">
+    <div class="card"><div class="top"><div class="icon" style="background:#ede9fe">💬</div><div class="info"><div class="name">智能客服助手</div><div class="desc">基于知识库的智能客服，支持多轮对话、意图识别和工单创建</div></div></div><div class="meta"><span class="tag tag-chat">ChatBot</span><span>1.2k 请求</span><span>99.2% 可用</span></div></div>
+    <div class="card"><div class="top"><div class="icon" style="background:#d1fae5">⚙️</div><div class="info"><div class="name">代码审查流水线</div><div class="desc">自动审查 PR，检测安全漏洞与代码规范，生成审查报告</div></div></div><div class="meta"><span class="tag tag-flow">Workflow</span><span>456 请求</span><span>97.8% 可用</span></div></div>
+    <div class="card"><div class="top"><div class="icon" style="background:#dbeafe">📄</div><div class="info"><div class="name">文档摘要引擎</div><div class="desc">上传文档自动生成结构化摘要和关键信息提取</div></div></div><div class="meta"><span class="tag tag-chat">ChatBot</span><span>3.4k 请求</span><span>99.5% 可用</span></div></div>
+    <div class="card"><div class="top"><div class="icon" style="background:#fef3c7">🗄</div><div class="info"><div class="name">SQL 生成器</div><div class="desc">自然语言转 SQL，支持 MySQL / PG / ClickHouse 多引擎</div></div></div><div class="meta"><span class="tag tag-chat">ChatBot</span><span>892 请求</span><span>96.1% 可用</span></div></div>
+    <div class="card"><div class="top"><div class="icon" style="background:#fce7f3">🤖</div><div class="info"><div class="name">竞品分析 Agent</div><div class="desc">输入竞品名，自动抓取信息生成结构化分析报告</div></div></div><div class="meta"><span class="tag tag-agent">Agent</span><span>567 请求</span><span>98.3% 可用</span></div></div>
+    <div class="card create"><div class="plus">+</div><div class="ct">创建新应用</div></div>
+  </div>
+  <div class="sec-title">知识库</div>
+  <div class="kb-list">
+    <div class="kb-row"><span class="kbicon">📚</span><div class="kbinfo"><div class="kbname">公司产品手册</div><div class="kbmeta"><span>12 文档</span><span>1,240 块</span><span>最后更新 2 小时前</span></div></div><span class="kbr">管理 →</span></div>
+    <div class="kb-row"><span class="kbicon">📋</span><div class="kbinfo"><div class="kbname">技术文档 FAQ</div><div class="kbmeta"><span>8 文档</span><span>560 块</span><span>最后更新 1 天前</span></div></div><span class="kbr">管理 →</span></div>
+    <div class="kb-row"><span class="kbicon">📖</span><div class="kbinfo"><div class="kbname">API 参考文档</div><div class="kbmeta"><span>5 文档</span><span>320 块</span><span>最后更新 3 天前</span></div></div><span class="kbr">管理 →</span></div>
+    <div class="kb-row" style="border:2px dashed #e2e4ea;justify-content:center;color:#6b6d80;background:transparent"><span style="font-size:18px;margin-right:6px">+</span> 创建知识库</div>
+  </div>
+</main>
+</body></html>

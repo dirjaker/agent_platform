@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Workflow - Neo-Brutalism</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',sans-serif;color:#111;background:#fffbeb;overflow:hidden;height:100vh}
+#app{display:flex;height:100vh}
+.sidebar{width:220px;background:#fff;border-right:3px solid #111;padding:24px 0}
+.sidebar .logo{font-size:22px;font-weight:700;padding:0 20px 20px;color:#111;letter-spacing:-1px}
+.sidebar .nav a{display:block;padding:10px 20px;font-size:14px;color:#555;text-decoration:none;font-weight:500;transition:all 0.1s}
+.sidebar .nav a:hover{background:#fffbeb;color:#111}
+.sidebar .nav a.active{background:#ff6b35;color:#fff}
+.sidebar .section{font-size:10px;font-weight:700;color:#ccc;padding:20px 20px 8px;text-transform:uppercase;letter-spacing:0.1em}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:60px;padding:0 24px;display:flex;align-items:center;border-bottom:3px solid #111;gap:16px;background:#fff}
+.topbar h1{font-size:20px;font-weight:700;color:#111;letter-spacing:-0.5px}
+.topbar .r{margin-left:auto;display:flex;gap:8px}
+.btn{padding:8px 20px;border:2px solid #111;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#111;font-family:inherit;transition:all 0.1s;box-shadow:3px 3px 0 #111}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 #111}
+.btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 #111}
+.btn.acc{background:#ff6b35;color:#fff}
+.canvas{flex:1;position:relative;overflow:hidden;background:#fffbeb;
+  background-image:radial-gradient(circle,#ddd 1px,transparent 1px);
+  background-size:30px 30px}
+.palette{position:absolute;left:16px;top:16px;display:flex;flex-direction:column;gap:6px;z-index:10}
+.palette .pi{width:44px;height:44px;border:2px solid #111;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:grab;transition:all 0.1s;box-shadow:2px 2px 0 #111}
+.palette .pi:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #111}
+.node{position:absolute;background:#fff;border:2px solid #111;width:220px;cursor:pointer;box-shadow:3px 3px 0 #111;transition:all 0.1s}
+.node:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #111}
+.node.sel{border-color:#ff6b35;box-shadow:4px 4px 0 #ff6b35}
+.node .hd{padding:12px 14px;border-bottom:2px solid #111;display:flex;align-items:center;gap:8px}
+.node .hd .dot{width:10px;height:10px;border:2px solid #111}
+.dot-s{background:#ffd700}.dot-a{background:#ff6b35}.dot-l{background:#ffd700}.dot-h{background:#4ecdc4}.dot-o{background:#ff6b35}
+.node .hd .nm{font-size:13px;font-weight:700;color:#111}
+.node .bd{padding:10px 14px 14px;font-size:11px;color:#555;line-height:1.4}
+.node .ft{display:flex;justify-content:space-between;padding:0 14px 12px}
+.node .ft .p{width:10px;height:10px;border:2px solid #111;background:#fff;cursor:crosshair}
+.node .ft .p:hover{background:#111}
+.cfg{position:absolute;right:16px;top:16px;bottom:16px;width:280px;background:#fff;border:2px solid #111;box-shadow:4px 4px 0 #111;display:flex;flex-direction:column;z-index:10}
+.cfg h3{padding:14px 16px;border-bottom:2px solid #111;font-size:14px;font-weight:700}
+.cfg .b{flex:1;overflow-y:auto;padding:16px}
+.cfg .f{margin-bottom:16px}
+.cfg label{display:block;font-size:10px;font-weight:700;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em}
+.cfg input,.cfg select{width:100%;padding:10px 12px;border:2px solid #111;font-size:13px;font-family:inherit;outline:none;background:#fffbeb;color:#111;font-weight:500}
+.cfg input:focus,.cfg select:focus{border-color:#ff6b35;box-shadow:2px 2px 0 #ff6b35}
+.cfg select{appearance:none;background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><path d='M2 4l4 4 4-4' stroke='%23111' stroke-width='2' fill='none'/></svg>");background-repeat:no-repeat;background-position:right 10px center}
+svg.c{position:absolute;inset:0;pointer-events:none}
+svg.c path{fill:none;stroke:#111;stroke-width:2}
+.status{height:36px;display:flex;align-items:center;padding:0 16px;border-top:2px solid #111;background:#fff;font-size:11px;font-weight:600;gap:8px;color:#555}
+.status .dot{width:8px;height:8px;background:#4ecdc4;border:1px solid #111}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#ddd;border:1px solid #111}
+</style></head><body>
+<div id="app">
+<div class="sidebar">
+  <div class="logo">FlowForge</div>
+  <div class="nav">
+    <a class="active">Editor</a><a>Run History</a><a>Variables</a>
+  </div>
+  <div class="section">Workflows</div>
+  <div class="nav">
+    <a>Customer Bot</a><a>Order Pipeline</a><a>Content Review</a>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <h1>Customer Service Bot</h1>
+    <div class="r"><button class="btn">Save Draft</button><button class="btn acc">Publish</button></div>
+  </div>
+  <div class="canvas">
+    <svg class="c"><path d="M310,350 C390,350 430,460 510,460"/><path d="M730,460 C810,460 850,250 930,250"/><path d="M730,460 C810,460 850,670 930,670"/><path d="M1150,250 C1230,250 1260,380 1320,380"/><path d="M1150,670 C1230,670 1260,530 1320,530"/></svg>
+    <div class="palette">
+      <div class="pi" style="background:#ffd700">▶</div>
+      <div class="pi" style="background:#ff6b35;color:#fff">🧠</div>
+      <div class="pi" style="background:#4ecdc4">{ }</div>
+      <div class="pi">↗</div>
+      <div class="pi" style="background:#ffd700">⇆</div>
+      <div class="pi">↻</div>
+      <div class="pi">⚙</div>
+    </div>
+    <div class="node" style="left:90px;top:320px"><div class="hd"><div class="dot dot-s"></div><div class="nm">Start</div></div><div class="bd">Enter point for the workflow. Receives user input.</div><div class="ft"><span></span><span class="p"></span></div></div>
+    <div class="node" style="left:510px;top:430px"><div class="hd"><div class="dot dot-a"></div><div class="nm">Intent Recognition</div></div><div class="bd">DeepSeek-V3 · Classifies user intent into categories.</div><div class="ft"><span class="p"></span><span class="p"></span></div></div>
+    <div class="node sel" style="left:930px;top:220px"><div class="hd"><div class="dot dot-l"></div><div class="nm">If / Else</div></div><div class="bd">Routes based on: intent == "order"</div><div class="ft"><span class="p"></span><span class="p" style="margin-right:8px"></span><span class="p"></span></div></div>
+    <div class="node" style="left:1320px;top:190px"><div class="hd"><div class="dot dot-h"></div><div class="nm">HTTP Request</div></div><div class="bd">GET /api/orders/:id · timeout 30s</div><div class="ft"><span class="p"></span><span></span></div></div>
+    <div class="node" style="left:1320px;top:500px"><div class="hd"><div class="dot dot-o"></div><div class="nm">Answer</div></div><div class="bd">Transfer to human agent with context summary.</div><div class="ft"><span class="p"></span><span></span></div></div>
+    <div class="cfg"><h3>If / Else Configuration</h3><div class="b">
+      <div class="f"><label>Node Name</label><input value="Intent Router"></div>
+      <div class="f"><label>Condition Variable</label><select><option>{{intent}}</option></select></div>
+      <div class="f"><label>Expression</label><input value="=='order'"></div>
+      <div class="f"><label>True Branch</label><input value="Query Order API"></div>
+      <div class="f"><label>False Branch</label><input value="Transfer to Human"></div>
+    </div></div>
+  </div>
+  <div class="status"><span class="dot"></span> 6 nodes · Last run 2 min ago · Duration 234ms · Status: OK</div>
+</div></div></body></html>

@@ -1,14 +1,37 @@
-"""知识库管理器 — 文档上传、文本分块、TF-IDF 向量化、语义搜索"""
+"""知识库管理器 — 文档上传、文本分块、嵌入向量化、Milvus 语义搜索"""
 
 import uuid
 import re
-import json
 import logging
-import math
-from collections import Counter
 from datetime import datetime
+from pymilvus import MilvusClient, DataType
 
 logger = logging.getLogger(__name__)
+
+# Milvus 连接配置
+MILVUS_URI = "http://101.132.81.140:19530"
+MILVUS_DIM = 384  # all-MiniLM-L6-v2 输出维度
+
+# 全局 embedding 模型（懒加载）
+_embedding_model = None
+
+
+def get_embedding_model():
+    """获取或初始化 sentence-transformers 模型（强制 CPU）"""
+    global _embedding_model
+    if _embedding_model is None:
+        import os
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""  # 强制 CPU，避免 CUDA 兼容性问题
+        from sentence_transformers import SentenceTransformer
+        logger.info("加载 embedding 模型: all-MiniLM-L6-v2 (CPU) ...")
+        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+        logger.info("embedding 模型加载完成")
+    return _embedding_model
+
+
+def get_milvus_client() -> MilvusClient:
+    """获取 Milvus 客户端"""
+    return MilvusClient(uri=MILVUS_URI)
 
 
 class TextChunker:
@@ -23,7 +46,6 @@ class TextChunker:
         if not text or not text.strip():
             return []
 
-        # 先按段落分割
         paragraphs = re.split(r'\n\s*\n', text.strip())
         chunks = []
         current = ""
@@ -38,7 +60,6 @@ class TextChunker:
             else:
                 if current:
                     chunks.append(current.strip())
-                # 如果单个段落超过 chunk_size，按句子再分
                 if len(para) > self.chunk_size:
                     sentences = re.split(r'(?<=[。！？.!?\n])\s*', para)
                     sub_current = ""
@@ -59,7 +80,6 @@ class TextChunker:
         if current.strip():
             chunks.append(current.strip())
 
-        # 添加重叠
         if self.chunk_overlap > 0 and len(chunks) > 1:
             overlapped = [chunks[0]]
             for i in range(1, len(chunks)):
@@ -71,123 +91,38 @@ class TextChunker:
         return chunks
 
 
-class TFIDFVectorizer:
-    """简单的 TF-IDF 向量化器"""
-
-    def __init__(self):
-        self.vocabulary: dict[str, int] = {}
-        self.idf: dict[str, float] = {}
-        self._fitted = False
-
-    def _tokenize(self, text: str) -> list[str]:
-        """简单分词（中英文混合）"""
-        # 英文单词
-        english_words = re.findall(r'[a-zA-Z]+', text.lower())
-        # 中文字符（按字分）
-        chinese_chars = re.findall(r'[\u4e00-\u9fff]', text)
-        # 中文 bigram
-        chinese_bigrams = []
-        for i in range(len(chinese_chars) - 1):
-            chinese_bigrams.append(chinese_chars[i] + chinese_chars[i + 1])
-        return english_words + chinese_chars + chinese_bigrams
-
-    def fit_transform(self, documents: list[str]) -> list[list[float]]:
-        """拟合并转换文档为 TF-IDF 向量"""
-        if not documents:
-            return []
-
-        # 构建词汇表
-        all_tokens = set()
-        doc_tokens = []
-        for doc in documents:
-            tokens = self._tokenize(doc)
-            doc_tokens.append(tokens)
-            all_tokens.update(tokens)
-
-        self.vocabulary = {token: idx for idx, token in enumerate(sorted(all_tokens))}
-
-        # 计算 IDF
-        n_docs = len(documents)
-        doc_freq = Counter()
-        for tokens in doc_tokens:
-            unique = set(tokens)
-            for token in unique:
-                doc_freq[token] += 1
-
-        self.idf = {}
-        for token in self.vocabulary:
-            df = doc_freq.get(token, 0)
-            self.idf[token] = math.log((n_docs + 1) / (df + 1)) + 1
-
-        self._fitted = True
-
-        # 计算 TF-IDF 向量
-        vectors = []
-        for tokens in doc_tokens:
-            vec = self._to_vector(tokens)
-            vectors.append(vec)
-        return vectors
-
-    def transform(self, text: str) -> list[float]:
-        """将单个文本转换为 TF-IDF 向量"""
-        if not self._fitted:
-            return []
-        tokens = self._tokenize(text)
-        return self._to_vector(tokens)
-
-    def _to_vector(self, tokens: list[str]) -> list[float]:
-        """将 token 列表转换为 TF-IDF 向量"""
-        tf = Counter(tokens)
-        total = len(tokens) if tokens else 1
-        vec = [0.0] * len(self.vocabulary)
-        for token, count in tf.items():
-            if token in self.vocabulary:
-                idx = self.vocabulary[token]
-                tf_val = count / total
-                idf_val = self.idf.get(token, 1.0)
-                vec[idx] = tf_val * idf_val
-        # L2 归一化
-        norm = math.sqrt(sum(x * x for x in vec))
-        if norm > 0:
-            vec = [x / norm for x in vec]
-        return vec
-
-    def to_json(self) -> str:
-        """序列化"""
-        return json.dumps({
-            "vocabulary": self.vocabulary,
-            "idf": self.idf,
-        }, ensure_ascii=False)
-
-    @classmethod
-    def from_json(cls, data: str) -> "TFIDFVectorizer":
-        """反序列化"""
-        obj = cls()
-        d = json.loads(data)
-        obj.vocabulary = d["vocabulary"]
-        obj.idf = d["idf"]
-        obj._fitted = True
-        return obj
+def _collection_name(dataset_id: str) -> str:
+    """Milvus collection 命名：kb_{dataset_id}，替换非法字符"""
+    safe = dataset_id.replace("-", "_")
+    return f"kb_{safe}"
 
 
-def cosine_similarity(a: list[float], b: list[float]) -> float:
-    """计算余弦相似度"""
-    if len(a) != len(b):
-        return 0.0
-    dot = sum(x * y for x, y in zip(a, b))
-    norm_a = math.sqrt(sum(x * x for x in a))
-    norm_b = math.sqrt(sum(x * x for x in b))
-    if norm_a == 0 or norm_b == 0:
-        return 0.0
-    return dot / (norm_a * norm_b)
+def _ensure_collection(client: MilvusClient, dataset_id: str):
+    """确保 Milvus collection 存在，不存在则创建"""
+    name = _collection_name(dataset_id)
+    if client.has_collection(name):
+        return
+    client.create_collection(
+        collection_name=name,
+        dimension=MILVUS_DIM,
+        metric_type="COSINE",
+        auto_id=True,
+        datatype=DataType.FLOAT_VECTOR,
+    )
+    logger.info(f"创建 Milvus collection: {name}")
 
 
 class KnowledgeManager:
-    """知识库管理器"""
+    """知识库管理器 — Milvus 后端"""
 
     def __init__(self, db):
         self.db = db
-        self._vectorizers: dict[str, TFIDFVectorizer] = {}  # dataset_id -> vectorizer
+        self._milvus = get_milvus_client()
+        # 预热 embedding 模型
+        try:
+            get_embedding_model()
+        except Exception as e:
+            logger.warning(f"embedding 模型加载失败（将延迟重试）: {e}")
 
     # ==================== Dataset CRUD ====================
 
@@ -197,11 +132,13 @@ class KnowledgeManager:
             "id": ds_id,
             "name": data.get("name", "未命名知识库"),
             "description": data.get("description", ""),
-            "embedding_model": data.get("embedding_model", "tfidf"),
+            "embedding_model": data.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2"),
             "chunk_size": data.get("chunk_size", 500),
             "chunk_overlap": data.get("chunk_overlap", 50),
         }
         self.db.create_dataset(ds)
+        # 创建 Milvus collection
+        _ensure_collection(self._milvus, ds_id)
         logger.info(f"创建知识库: {ds['name']} ({ds_id})")
         return self.db.get_dataset(ds_id)
 
@@ -216,7 +153,14 @@ class KnowledgeManager:
         return self.db.get_dataset(ds_id)
 
     def delete_dataset(self, ds_id: str) -> bool:
-        self._vectorizers.pop(ds_id, None)
+        # 删除 Milvus collection
+        name = _collection_name(ds_id)
+        try:
+            if self._milvus.has_collection(name):
+                self._milvus.drop_collection(name)
+                logger.info(f"删除 Milvus collection: {name}")
+        except Exception as e:
+            logger.error(f"删除 Milvus collection 失败: {e}")
         return self.db.delete_dataset(ds_id)
 
     # ==================== Document CRUD ====================
@@ -224,7 +168,7 @@ class KnowledgeManager:
     def upload_document(self, dataset_id: str, name: str, content: str,
                         file_type: str = "txt", file_size: int = 0,
                         auto_chunk: bool = True) -> dict:
-        """上传文档并自动分块"""
+        """上传文档并自动分块、嵌入、写入 Milvus"""
         ds = self.db.get_dataset(dataset_id)
         if not ds:
             raise ValueError(f"知识库 {dataset_id} 不存在")
@@ -246,14 +190,14 @@ class KnowledgeManager:
                 self._chunk_document(doc_id, dataset_id, content, ds)
                 self.db.update_document(doc_id, {"status": "completed"})
             except Exception as e:
-                logger.error(f"文档分块失败: {e}")
+                logger.error(f"文档分块/索引失败: {e}")
                 self.db.update_document(doc_id, {"status": "error", "error_msg": str(e)})
 
         self.db.update_dataset_counts(dataset_id)
         return self.db.get_document(doc_id)
 
     def _chunk_document(self, doc_id: str, dataset_id: str, content: str, ds: dict):
-        """分块并生成向量"""
+        """分块 → 嵌入 → 写入 Milvus"""
         chunker = TextChunker(
             chunk_size=ds.get("chunk_size", 500),
             chunk_overlap=ds.get("chunk_overlap", 50),
@@ -261,53 +205,51 @@ class KnowledgeManager:
         chunks = chunker.chunk(content)
         logger.info(f"文档 {doc_id} 分成 {len(chunks)} 个片段")
 
-        # 创建片段
-        segments = []
-        for i, chunk_text in enumerate(chunks):
+        if not chunks:
+            logger.warning(f"文档 {doc_id} 无可分块内容")
+            self.db.update_document(doc_id, {"segment_count": 0})
+            return
+
+        # 获取 embedding 模型
+        model = get_embedding_model()
+
+        # 批量嵌入
+        embeddings = model.encode(chunks, show_progress_bar=False).tolist()
+
+        # 确保 collection 存在
+        _ensure_collection(self._milvus, dataset_id)
+
+        # 准备 Milvus 插入数据（auto_id=True，不传 id）
+        milvus_data = []
+        seg_ids = []
+        for i, (chunk_text, vec) in enumerate(zip(chunks, embeddings)):
             seg_id = str(uuid.uuid4())[:12]
-            seg = {
-                "id": seg_id,
+            seg_ids.append(seg_id)
+            milvus_data.append({
+                "vector": vec,
                 "document_id": doc_id,
                 "dataset_id": dataset_id,
                 "content": chunk_text,
-                "word_count": len(chunk_text),
                 "position": i,
-            }
-            self.db.create_segment(seg)
-            segments.append(seg)
+                "word_count": len(chunk_text),
+            })
 
-        # 生成 TF-IDF 向量
-        self._build_vectors(dataset_id)
+        # 批量插入 Milvus
+        insert_result = self._milvus.insert(collection_name=_collection_name(dataset_id), data=milvus_data)
+
+        # 同时在 SQLite 中记录 segments（用于管理界面展示）
+        for seg_id, item in zip(seg_ids, milvus_data):
+            self.db.create_segment({
+                "id": seg_id,
+                "document_id": doc_id,
+                "dataset_id": dataset_id,
+                "content": item["content"],
+                "word_count": item["word_count"],
+                "position": item["position"],
+            })
 
         self.db.update_document(doc_id, {"segment_count": len(chunks)})
-
-    def _build_vectors(self, dataset_id: str):
-        """为数据集构建/重建 TF-IDF 向量"""
-        segments = self.db.list_segments(dataset_id=dataset_id)
-        if not segments:
-            return
-
-        contents = [s["content"] for s in segments]
-        vectorizer = TFIDFVectorizer()
-        vectors = vectorizer.fit_transform(contents)
-        self._vectorizers[dataset_id] = vectorizer
-
-        # 将向量存入数据库
-        for seg, vec in zip(segments, vectors):
-            # 只存非零值以节省空间
-            sparse = {str(i): v for i, v in enumerate(vec) if v != 0}
-            self.db.create_segment({
-                **seg,
-                "vector": json.dumps(sparse),
-            }) if False else None
-            # 直接更新 vector 字段
-            with self.db._get_conn() as conn:
-                conn.execute(
-                    "UPDATE segments SET vector = ? WHERE id = ?",
-                    (json.dumps(sparse), seg["id"]),
-                )
-
-        logger.info(f"数据集 {dataset_id} 向量构建完成: {len(vectors)} 个片段, 词汇量 {len(vectorizer.vocabulary)}")
+        logger.info(f"文档 {doc_id}: {len(chunks)} 片段已写入 Milvus")
 
     def get_document(self, doc_id: str) -> dict | None:
         return self.db.get_document(doc_id)
@@ -320,82 +262,80 @@ class KnowledgeManager:
         return self.db.get_document(doc_id)
 
     def delete_document(self, doc_id: str) -> bool:
+        """删除文档及其在 Milvus 中的向量"""
         doc = self.db.get_document(doc_id)
-        if doc:
-            self._vectorizers.pop(doc["dataset_id"], None)
+        if not doc:
+            return False
+        dataset_id = doc["dataset_id"]
+        # 从 Milvus 删除
+        try:
+            self._milvus.delete(
+                collection_name=_collection_name(dataset_id),
+                filter=f'document_id == "{doc_id}"',
+            )
+            logger.info(f"从 Milvus 删除文档 {doc_id} 的向量")
+        except Exception as e:
+            logger.error(f"Milvus 删除失败: {e}")
         return self.db.delete_document(doc_id)
 
     # ==================== 语义搜索 ====================
 
     def search(self, dataset_ids: list[str], query: str, top_k: int = 5) -> list[dict]:
-        """跨数据集语义搜索"""
+        """跨数据集 Milvus 语义搜索"""
+        if not dataset_ids or not query:
+            return []
+
+        model = get_embedding_model()
+        query_vec = model.encode(query).tolist()
+
         all_results = []
-
         for ds_id in dataset_ids:
-            results = self._search_single_dataset(ds_id, query, top_k)
-            all_results.extend(results)
+            name = _collection_name(ds_id)
+            if not self._milvus.has_collection(name):
+                continue
+            try:
+                results = self._milvus.search(
+                    collection_name=name,
+                    data=[query_vec],
+                    limit=top_k,
+                    output_fields=["document_id", "dataset_id", "content", "position"],
+                )
+                for hit in results[0]:
+                    entity = hit.get("entity", {})
+                    all_results.append({
+                        "segment_id": hit["id"],
+                        "document_id": entity.get("document_id", ""),
+                        "dataset_id": ds_id,
+                        "content": entity.get("content", ""),
+                        "score": round(hit["distance"], 4),
+                    })
+            except Exception as e:
+                logger.error(f"搜索 {name} 失败: {e}")
+                continue
 
-        # 按相似度排序，取 top_k
         all_results.sort(key=lambda x: x["score"], reverse=True)
         return all_results[:top_k]
 
-    def _search_single_dataset(self, dataset_id: str, query: str,
-                                top_k: int = 5) -> list[dict]:
-        """单个数据集内搜索"""
-        # 获取或构建 vectorizer
-        vectorizer = self._vectorizers.get(dataset_id)
-        if not vectorizer:
-            vectorizer = self._load_vectorizer(dataset_id)
-            if not vectorizer:
-                return []
+    def search_in_dataset(self, dataset_id: str, query: str, top_k: int = 5) -> list[dict]:
+        """单数据集搜索"""
+        return self.search([dataset_id], query, top_k)
 
-        # 查询向量化
-        query_vec = vectorizer.transform(query)
-        if not query_vec:
-            return []
-
-        # 获取所有片段
-        segments = self.db.list_segments(dataset_id=dataset_id, limit=10000)
-        if not segments:
-            return []
-
-        # 计算相似度
-        results = []
-        for seg in segments:
-            if not seg.get("vector"):
-                continue
-            try:
-                sparse = json.loads(seg["vector"])
-                # 还原稠密向量
-                dim = len(query_vec)
-                seg_vec = [0.0] * dim
-                for idx_str, val in sparse.items():
-                    idx = int(idx_str)
-                    if idx < dim:
-                        seg_vec[idx] = val
-                score = cosine_similarity(query_vec, seg_vec)
-                if score > 0.01:
-                    results.append({
-                        "segment_id": seg["id"],
-                        "document_id": seg["document_id"],
-                        "dataset_id": dataset_id,
-                        "content": seg["content"],
-                        "score": round(score, 4),
-                    })
-            except (json.JSONDecodeError, ValueError):
-                continue
-
-        results.sort(key=lambda x: x["score"], reverse=True)
-        return results[:top_k]
-
-    def _load_vectorizer(self, dataset_id: str) -> TFIDFVectorizer | None:
-        """从数据库加载重建 vectorizer"""
-        segments = self.db.list_segments(dataset_id=dataset_id, limit=10000)
-        if not segments:
-            return None
-
-        contents = [s["content"] for s in segments]
-        vectorizer = TFIDFVectorizer()
-        vectorizer.fit_transform(contents)
-        self._vectorizers[dataset_id] = vectorizer
-        return vectorizer
+    def get_dataset_stats(self, dataset_id: str) -> dict:
+        """获取知识库统计（含 Milvus 向量数）"""
+        ds = self.db.get_dataset(dataset_id)
+        if not ds:
+            return {}
+        name = _collection_name(dataset_id)
+        vector_count = 0
+        try:
+            if self._milvus.has_collection(name):
+                stats = self._milvus.get_collection_stats(name)
+                vector_count = stats.get("row_count", 0)
+        except Exception:
+            pass
+        doc_count = self.db.get_document_count(dataset_id)
+        return {
+            **ds,
+            "document_count": doc_count,
+            "vector_count": vector_count,
+        }

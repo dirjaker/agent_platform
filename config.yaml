@@ -33,7 +33,7 @@ database:
 # Web 服务配置
 server:
   host: "0.0.0.0"
-  port: 10002
+  port: 10004
 
 # Agent 配置
 agent:

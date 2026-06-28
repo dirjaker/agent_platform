@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workflow Editor - Dify Style</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1e293b;background:#f1f5f9;overflow:hidden;height:100vh}
+#app{display:flex;flex-direction:column;height:100vh}
+/* Header */
+.header{height:48px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:10}
+.header .back{font-size:18px;cursor:pointer;color:#64748b;padding:4px}
+.header .title{font-size:14px;font-weight:600;color:#1e293b}
+.header .sep{width:1px;height:20px;background:#e2e8f0;margin:0 4px}
+.header .actions{margin-left:auto;display:flex;gap:6px}
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:500;transition:all 0.15s}
+.btn-outline{background:#fff;border:1px solid #e2e8f0;color:#475569}.btn-outline:hover{background:#f8fafc;border-color:#cbd5e1}
+.btn-primary{background:#6366f1;color:#fff}.btn-primary:hover{background:#4f46e5}
+.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}
+.btn-ghost{background:transparent;color:#64748b}.btn-ghost:hover{background:#f1f5f9}
+/* Main */
+.main{flex:1;display:flex;overflow:hidden}
+/* Left panel - Node picker */
+.node-picker{width:200px;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;flex-shrink:0}
+.picker-search{padding:10px;border-bottom:1px solid #e2e8f0}
+.picker-search input{width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;outline:none;background:#f8fafc}
+.picker-search input:focus{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,0.1)}
+.picker-list{flex:1;overflow-y:auto;padding:6px}
+.node-category{margin-bottom:4px}
+.node-cat-title{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;padding:8px 8px 4px;cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
+.node-cat-title::after{content:'▾';font-size:8px;margin-left:auto;transition:transform 0.2s}
+.node-cat-title.collapsed::after{transform:rotate(-90deg)}
+.node-item{padding:7px 10px;margin:1px 0;border-radius:6px;cursor:grab;font-size:12px;display:flex;align-items:center;gap:8px;transition:all 0.12s;color:#475569;user-select:none}
+.node-item:hover{background:#eef2ff;color:#4338ca}
+.node-item:active{cursor:grabbing}
+.node-item .nicon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.nicon-start{background:#dbeafe;color:#2563eb}
+.nicon-llm{background:#ede9fe;color:#7c3aed}
+.nicon-logic{background:#fef3c7;color:#d97706}
+.nicon-process{background:#d1fae5;color:#059669}
+.nicon-tool{background:#fce7f3;color:#db2777}
+.nicon-end{background:#fee2e2;color:#dc2626}
+/* Canvas */
+.canvas-area{flex:1;position:relative;overflow:hidden;background:#f8fafc;
+  background-image:radial-gradient(circle,#e2e8f0 1px,transparent 1px);
+  background-size:20px 20px}
+.canvas-area.dragging{cursor:grabbing}
+/* Minimap */
+.minimap{position:absolute;bottom:12px;right:12px;width:160px;height:100px;background:rgba(255,255,255,0.85);border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden}
+.minimap-view{position:absolute;border:1px solid #6366f1;background:rgba(99,102,241,0.06);border-radius:2px}
+/* Nodes on canvas */
+.flow-node{position:absolute;background:#fff;border:1px solid #e2e8f0;border-radius:10px;min-width:180px;box-shadow:0 1px 3px rgba(0,0,0,0.04);cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s}
+.flow-node:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.flow-node.selected{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,0.15)}
+.node-header{padding:10px 14px 6px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#1e293b}
+.node-header .dot{width:7px;height:7px;border-radius:50%}
+.dot-blue{background:#3b82f6}.dot-purple{background:#8b5cf6}.dot-amber{background:#f59e0b}
+.dot-green{background:#10b981}.dot-pink{background:#ec4899}.dot-red{background:#ef4444}
+.node-body{padding:4px 14px 10px;font-size:11px;color:#94a3b8;line-height:1.4}
+.node-ports{display:flex;align-items:center;padding:0 14px 10px;gap:4px}
+.port{width:8px;height:8px;border-radius:50%;border:2px solid #cbd5e1;background:#fff;cursor:crosshair;transition:all 0.15s}
+.port:hover{border-color:#6366f1;background:#6366f1;transform:scale(1.3)}
+.port.input{margin-right:auto}
+.port.output{margin-left:auto}
+/* Right panel */
+.config-panel{width:340px;background:#fff;border-left:1px solid #e2e8f0;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.panel-header{padding:14px 16px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.panel-body{flex:1;overflow-y:auto;padding:16px}
+.panel-body .field{margin-bottom:16px}
+.panel-body label{display:block;font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em}
+.panel-body input,.panel-body textarea,.panel-body select{width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;outline:none;background:#fff}
+.panel-body input:focus,.panel-body textarea:focus{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,0.1)}
+.panel-body textarea{resize:vertical;min-height:80px;font-family:monospace;font-size:12px}
+.panel-body select{cursor:pointer}
+/* Connection lines (SVG) */
+.connections{position:absolute;inset:0;pointer-events:none;z-index:1}
+.connections line{stroke:#94a3b8;stroke-width:2;stroke-linecap:round}
+.connections path{fill:none;stroke:#94a3b8;stroke-width:2}
+/* Status bar */
+.status-bar{height:28px;background:#fff;border-top:1px solid #e2e8f0;display:flex;align-items:center;padding:0 14px;gap:16px;flex-shrink:0;font-size:11px;color:#94a3b8}
+.status-bar .dot{width:6px;height:6px;border-radius:50%;background:#10b981}
+#tooltip{display:none;position:fixed;background:#1e293b;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;pointer-events:none;z-index:1000;white-space:nowrap}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <span class="back">←</span>
+    <span class="title">智能客服工作流</span>
+    <span class="sep"></span>
+    <button class="btn btn-outline">⎌ 撤销</button>
+    <button class="btn btn-outline">↻ 重做</button>
+    <div class="actions">
+      <button class="btn btn-outline">💾 保存草稿</button>
+      <button class="btn btn-primary">发布</button>
+      <button class="btn btn-success">▶ 测试运行</button>
+    </div>
+  </div>
+  <div class="main">
+    <!-- Left: Node Picker -->
+    <div class="node-picker">
+      <div class="picker-search"><input type="text" placeholder="搜索节点..." /></div>
+      <div class="picker-list">
+        <div class="node-category">
+          <div class="node-cat-title">基础</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-start">▶</span>Start</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-end">⏹</span>End</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-end">💬</span>Answer</div>
+        </div>
+        <div class="node-category">
+          <div class="node-cat-title">AI</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-llm">🧠</span>LLM</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-llm">📚</span>Knowledge</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-llm">🤖</span>Agent</div>
+        </div>
+        <div class="node-category">
+          <div class="node-cat-title">逻辑</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-logic">🔀</span>If/Else</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-logic">🔄</span>Loop</div>
+        </div>
+        <div class="node-category">
+          <div class="node-cat-title">处理</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-process">💻</span>Code</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-process">🌐</span>HTTP</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-process">📝</span>Template</div>
+        </div>
+        <div class="node-category">
+          <div class="node-cat-title">工具</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-tool">🔧</span>Tool</div>
+          <div class="node-item" draggable="true"><span class="nicon nicon-tool">👤</span>Human Input</div>
+        </div>
+      </div>
+    </div>
+    <!-- Center: Canvas -->
+    <div class="canvas-area">
+      <svg class="connections" id="connections">
+        <!-- Start → LLM -->
+        <path d="M 280,140 C 340,140 340,220 400,220" />
+        <!-- LLM → IfElse -->
+        <path d="M 600,220 C 660,220 660,130 720,130" />
+        <path d="M 600,220 C 660,220 660,310 720,310" />
+        <!-- IfElse(true) → HTTP -->
+        <path d="M 920,130 C 980,130 980,100 1040,100" />
+        <!-- IfElse(false) → Answer -->
+        <path d="M 920,310 C 980,310 980,300 1040,300" />
+        <!-- HTTP → End -->
+        <path d="M 1240,100 C 1280,100 1280,140 1320,140" />
+      </svg>
+      <!-- Start Node -->
+      <div class="flow-node" style="left:100px;top:110px;width:180px">
+        <div class="node-header"><span class="dot dot-blue"></span>Start</div>
+        <div class="node-body">工作流入口 · 接收用户输入</div>
+        <div class="node-ports"><span class="port output"></span></div>
+      </div>
+      <!-- LLM Node -->
+      <div class="flow-node" style="left:400px;top:190px;width:200px">
+        <div class="node-header"><span class="dot dot-purple"></span>LLM</div>
+        <div class="node-body">模型: DeepSeek-V3<br>temp: 0.7 · max: 2048</div>
+        <div class="node-ports"><span class="port input"></span><span class="port output"></span></div>
+      </div>
+      <!-- If/Else Node -->
+      <div class="flow-node selected" style="left:720px;top:100px;width:200px">
+        <div class="node-header"><span class="dot dot-amber"></span>If/Else</div>
+        <div class="node-body">条件: {{intent}} == 'order'<br>→ true: 查订单<br>→ false: 转人工</div>
+        <div class="node-ports"><span class="port input"></span><span class="port output" style="margin-left:8px"></span><span class="port output"></span></div>
+      </div>
+      <!-- HTTP Node -->
+      <div class="flow-node" style="left:1040px;top:70px;width:200px">
+        <div class="node-header"><span class="dot dot-green"></span>HTTP Request</div>
+        <div class="node-body">GET /api/orders/{{order_id}}<br>timeout: 30s</div>
+        <div class="node-ports"><span class="port input"></span><span class="port output"></span></div>
+      </div>
+      <!-- Answer Node -->
+      <div class="flow-node" style="left:1040px;top:270px;width:200px">
+        <div class="node-header"><span class="dot dot-pink"></span>Answer</div>
+        <div class="node-body">回复: 正在为您转接人工客服</div>
+        <div class="node-ports"><span class="port input"></span></div>
+      </div>
+      <!-- End Node -->
+      <div class="flow-node" style="left:1320px;top:110px;width:180px">
+        <div class="node-header"><span class="dot dot-red"></span>End</div>
+        <div class="node-body">工作流结束 · 输出回复</div>
+        <div class="node-ports"><span class="port input"></span></div>
+      </div>
+    </div>
+    <!-- Right: Config Panel -->
+    <div class="config-panel">
+      <div class="panel-header"><span class="dot dot-amber" style="display:inline-block;width:7px;height:7px"></span>If/Else 节点配置</div>
+      <div class="panel-body">
+        <div class="field">
+          <label>节点名称</label>
+          <input type="text" value="意图判断" />
+        </div>
+        <div class="field">
+          <label>条件变量</label>
+          <select><option>{{intent}}</option><option>{{input.query}}</option></select>
+        </div>
+        <div class="field">
+          <label>条件表达式</label>
+          <input type="text" value="=='order'" />
+        </div>
+        <div class="field">
+          <label>True 分支标签</label>
+          <input type="text" value="查订单" />
+        </div>
+        <div class="field">
+          <label>False 分支标签</label>
+          <input type="text" value="转人工" />
+        </div>
+        <div class="field">
+          <label>描述</label>
+          <textarea placeholder="节点说明...">根据用户意图分流到不同处理链路</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <span class="dot"></span> 已保存 · 6 节点 · 最后运行 3 分钟前 · 耗时 234ms
+  </div>
+</div>
+<div id="tooltip"></div>
+<script>
+document.querySelectorAll('.flow-node').forEach(node=>{
+  node.addEventListener('click',function(e){
+    document.querySelectorAll('.flow-node').forEach(n=>n.classList.remove('selected'));
+    this.classList.add('selected');
+    e.stopPropagation();
+  });
+});
+document.querySelector('.canvas-area').addEventListener('click',function(){
+  document.querySelectorAll('.flow-node').forEach(n=>n.classList.remove('selected'));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Platform - Dark Operations</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"SF Mono","JetBrains Mono","Fira Code",monospace;-webkit-font-smoothing:antialiased;color:#e2e4f0;background:#0b0d14;line-height:1.5;overflow:hidden;height:100vh;font-size:13px}
+#app{display:flex;height:100vh}
+/* Command sidebar */
+.sidebar{width:210px;background:#0f1119;border-right:1px solid #1e2030;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:16px;font-size:13px;font-weight:700;color:#7c8aff;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #1e2030;display:flex;align-items:center;gap:8px}
+.sidebar-logo .indicator{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sidebar-nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:1px}
+.nav-group{padding:10px 8px 4px;font-size:10px;color:#4a5078;text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+.nav-item{padding:7px 10px;border-radius:4px;cursor:pointer;font-size:12px;color:#6b7294;transition:all 0.12s;display:flex;align-items:center;gap:8px;user-select:none}
+.nav-item:hover{background:#161b28;color:#a8b0d4}
+.nav-item.active{background:rgba(124,138,255,0.12);color:#7c8aff;border-left:2px solid #7c8aff;margin-left:-8px;padding-left:16px}
+.nav-item .count{margin-left:auto;font-size:10px;color:#4a5078;background:#161b28;padding:1px 6px;border-radius:8px}
+/* Main area */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:44px;background:#0f1119;border-bottom:1px solid #1e2030;display:flex;align-items:center;padding:0 16px;flex-shrink:0;gap:12px}
+.topbar .path{font-size:12px;color:#4a5078}
+.topbar .path span{color:#7c8aff}
+.topbar .actions{margin-left:auto;display:flex;gap:6px}
+.btn{padding:5px 12px;border-radius:4px;border:1px solid #1e2030;background:transparent;color:#a8b0d4;cursor:pointer;font-size:11px;font-family:inherit;transition:all 0.12s}
+.btn:hover{border-color:#3a4080;color:#e2e4f0}
+.btn-primary{background:#7c8aff;border-color:#7c8aff;color:#0b0d14;font-weight:600}
+.btn-primary:hover{background:#6b7aff}
+/* Content grid */
+.content{flex:1;display:flex;overflow:hidden;gap:1px;background:#1e2030}
+/* Left panel - app list */
+.app-panel{width:380px;background:#0f1119;overflow-y:auto;padding:12px;flex-shrink:0}
+.panel-header{font-size:10px;color:#4a5078;text-transform:uppercase;letter-spacing:0.08em;padding:4px 8px 8px;font-weight:600}
+.app-row{padding:10px 12px;border:1px solid transparent;border-radius:4px;cursor:pointer;transition:all 0.12s;margin-bottom:4px;background:#0f1119}
+.app-row:hover{border-color:#1e2030;background:#131620}
+.app-row.active{border-color:#7c8aff;background:rgba(124,138,255,0.06)}
+.app-row .top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.app-row .name{font-size:13px;font-weight:600;color:#e2e4f0}
+.app-row .type{font-size:10px;padding:1px 8px;border-radius:8px;font-weight:500}
+.type-chat{background:rgba(124,138,255,0.15);color:#7c8aff}
+.type-flow{background:rgba(45,212,191,0.15);color:#2dd4bf}
+.app-row .desc{font-size:11px;color:#4a5078;margin-bottom:6px}
+.app-row .meta{display:flex;gap:12px;font-size:10px;color:#3a4060}
+.app-row .meta .metric{display:flex;align-items:center;gap:3px}
+.metric .dot{width:5px;height:5px;border-radius:50%}
+.dot-green{background:#22c55e}.dot-yellow{background:#eab308}.dot-red{background:#ef4444}
+/* Right panel - dash */
+.dash-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.metrics-row{display:flex;gap:1px;background:#1e2030;border-bottom:1px solid #1e2030;flex-shrink:0}
+.metric-card{flex:1;background:#0f1119;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.metric-card .mval{font-size:20px;font-weight:700;color:#e2e4f0;letter-spacing:-0.5px;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.metric-card .mval .unit{font-size:11px;color:#4a5078;font-weight:400;margin-left:2px}
+.metric-card .mlbl{font-size:10px;color:#4a5078;text-transform:uppercase;letter-spacing:0.05em}
+.metric-card .mtrend{font-size:10px}
+.mtrend-up{color:#22c55e}.mtrend-down{color:#ef4444}
+/* Activity feed */
+.activity{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.activity-title{font-size:10px;color:#4a5078;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px}
+.log-entry{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:4px;font-size:11px;border-left:2px solid transparent}
+.log-entry:hover{background:#131620}
+.log-entry .time{font-size:10px;color:#3a4060;width:42px;flex-shrink:0;font-family:monospace}
+.log-entry .event{flex:1;color:#a8b0d4}
+.log-entry .event .hl{color:#7c8aff}
+.log-info{border-left-color:#7c8aff}
+.log-success{border-left-color:#22c55e}
+.log-warn{border-left-color:#eab308}
+/* Console */
+.console{height:140px;background:#080a12;border-top:1px solid #1e2030;flex-shrink:0;overflow:hidden;display:flex;flex-direction:column}
+.console-title{font-size:10px;color:#4a5078;padding:6px 12px;text-transform:uppercase;letter-spacing:0.08em;background:#0a0c16;border-bottom:1px solid #1e2030}
+.console-content{flex:1;padding:8px 12px;font-size:11px;font-family:inherit;overflow-y:auto;line-height:1.7;color:#6b7294}
+.console-content .prompt{color:#22c55e}
+.console-content .cmd{color:#7c8aff}
+.console-content .warn{color:#eab308}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1e2030;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo"><span class="indicator"></span>NexusOps</div>
+    <div class="sidebar-nav">
+      <div class="nav-group">核心</div>
+      <div class="nav-item active">应用<span class="count">12</span></div>
+      <div class="nav-item">知识库<span class="count">5</span></div>
+      <div class="nav-item">工具<span class="count">18</span></div>
+      <div class="nav-item">工作流<span class="count">8</span></div>
+      <div class="nav-group">运维</div>
+      <div class="nav-item">监控</div>
+      <div class="nav-item">日志</div>
+      <div class="nav-item">告警<span class="count">3</span></div>
+      <div class="nav-group">系统</div>
+      <div class="nav-item">模型路由</div>
+      <div class="nav-item">API 密钥</div>
+      <div class="nav-item">配置</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="path">NexusOps <span>/</span> 应用管理</div>
+      <div class="actions">
+        <button class="btn">导出配置</button>
+        <button class="btn btn-primary">+ 新建</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="app-panel">
+        <div class="panel-header">应用实例</div>
+        <div class="app-row active">
+          <div class="top"><span class="name">智能客服助手</span><span class="type type-chat">CHAT</span></div>
+          <div class="desc">知识库问答 · DeepSeek V3 · RAG</div>
+          <div class="meta">
+            <span class="metric"><span class="dot dot-green"></span>99.2%</span>
+            <span>1.2k req/h</span>
+            <span>234ms avg</span>
+          </div>
+        </div>
+        <div class="app-row">
+          <div class="top"><span class="name">代码审查助手</span><span class="type type-flow">FLOW</span></div>
+          <div class="desc">PR 审查 · 安全扫描 · 自动评论</div>
+          <div class="meta">
+            <span class="metric"><span class="dot dot-green"></span>97.8%</span>
+            <span>456 req/h</span>
+            <span>1.2s avg</span>
+          </div>
+        </div>
+        <div class="app-row">
+          <div class="top"><span class="name">文档摘要引擎</span><span class="type type-chat">CHAT</span></div>
+          <div class="desc">PDF/Word解析 · 结构化摘要 · 实体提取</div>
+          <div class="meta">
+            <span class="metric"><span class="dot dot-green"></span>99.5%</span>
+            <span>3.4k req/h</span>
+            <span>567ms avg</span>
+          </div>
+        </div>
+        <div class="app-row">
+          <div class="top"><span class="name">SQL生成器</span><span class="type type-chat">CHAT</span></div>
+          <div class="desc">NL2SQL · 多引擎支持 · 查询优化</div>
+          <div class="meta">
+            <span class="metric"><span class="dot dot-yellow"></span>96.1%</span>
+            <span>892 req/h</span>
+            <span>890ms avg</span>
+          </div>
+        </div>
+        <div class="app-row">
+          <div class="top"><span class="name">数据ETL流水线</span><span class="type type-flow">FLOW</span></div>
+          <div class="desc">自动清洗 · 格式标准化 · 异常检测</div>
+          <div class="meta">
+            <span class="metric"><span class="dot dot-green"></span>100%</span>
+            <span>234 req/h</span>
+            <span>3.1s avg</span>
+          </div>
+        </div>
+      </div>
+      <div class="dash-panel">
+        <div class="metrics-row">
+          <div class="metric-card"><div class="mval">12<span class="unit">个</span></div><div class="mlbl">活跃应用</div><div class="mtrend mtrend-up">+2 本周</div></div>
+          <div class="metric-card"><div class="mval">1.2k<span class="unit">/h</span></div><div class="mlbl">请求速率</div><div class="mtrend mtrend-up">+18%</div></div>
+          <div class="metric-card"><div class="mval">98.7<span class="unit">%</span></div><div class="mlbl">成功率</div><div class="mtrend mtrend-up">+0.3%</div></div>
+          <div class="metric-card"><div class="mval">¥23.5<span class="unit">/日</span></div><div class="mlbl">API 花费</div><div class="mtrend mtrend-down">-8%</div></div>
+        </div>
+        <div class="activity">
+          <div class="activity-title">实时活动</div>
+          <div class="log-entry log-info"><span class="time">14:32:01</span><span class="event"><span class="hl">智能客服助手</span> 完成对话 · 3轮 · 145 tokens</span></div>
+          <div class="log-entry log-success"><span class="time">14:31:45</span><span class="event"><span class="hl">代码审查助手</span> PR#234 审查通过 · 0 issues</span></div>
+          <div class="log-entry log-info"><span class="time">14:31:22</span><span class="event"><span class="hl">文档摘要引擎</span> 处理完成 · PDF 12页 · 890 tokens</span></div>
+          <div class="log-entry log-warn"><span class="time">14:31:05</span><span class="event"><span class="hl">SQL生成器</span> 查询超时重试 · 第2次</span></div>
+          <div class="log-entry log-success"><span class="time">14:30:48</span><span class="event"><span class="hl">数据ETL</span> 流水线完成 · 1.2M行 · 3.1s</span></div>
+          <div class="log-entry log-info"><span class="time">14:30:12</span><span class="event"><span class="hl">模型路由</span> 切换至 DeepSeek-V3 · 可用</span></div>
+        </div>
+        <div class="console">
+          <div class="console-title">控制台输出</div>
+          <div class="console-content">
+            <span class="prompt">nexus@ops:~$</span> <span class="cmd">system status --watch</span><br>
+            [OK] api-gateway :8000 — <span style="color:#22c55e">healthy</span> (uptime 3d 2h)<br>
+            [OK] model-router :9001 — <span style="color:#22c55e">healthy</span><br>
+            [OK] rag-service :9002 — <span style="color:#22c55e">healthy</span><br>
+            <span class="warn">[WARN]</span> rate-limiter: approaching threshold (92%)<br>
+            <span class="prompt">nexus@ops:~$</span> <span style="opacity:0.5">█</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
