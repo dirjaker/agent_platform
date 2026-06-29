@@ -3,7 +3,7 @@
 # 模型提供商配置
 providers:
   deepseek:
-    api_key: ""  # 填入你的 DeepSeek API Key
+    api_key: "REDACTED_DEEPSEEK_KEY"
     base_url: "https://api.deepseek.com"
     models:
       - "deepseek-chat"
