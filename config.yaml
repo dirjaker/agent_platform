@@ -3,7 +3,7 @@
 # 模型提供商配置
 providers:
   deepseek:
-    api_key: "REDACTED_DEEPSEEK_KEY"
+    api_key: ""  # 从 .env 文件加载（AGENT_DEEPSEEK_KEY）
     base_url: "https://api.deepseek.com"
     models:
       - "deepseek-chat"

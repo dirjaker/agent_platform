@@ -4,8 +4,12 @@ import yaml
 import os
 from pathlib import Path
 from typing import Any
+from dotenv import load_dotenv
 
 CONFIG_PATH = Path(__file__).parent / "config.yaml"
+
+# 启动时加载 .env 文件
+load_dotenv(Path(__file__).parent / ".env")
 
 # 环境变量映射
 ENV_MAPPINGS = {
